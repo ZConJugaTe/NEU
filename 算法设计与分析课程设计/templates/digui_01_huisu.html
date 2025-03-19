@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <title>01背包问题 - 回溯法递归仿真系统</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        input[type="text"], input[type="number"], select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #tapeContainer {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8e8e8; /* 轻微的灰色背景 */
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #tape {
+            padding: 5px;
+            border: 1px solid #ccc; /* 边框让它更像纸带 */
+            border-radius: 8px;
+            white-space: nowrap;
+            overflow-x: auto; /* 添加横向滚动条 */
+            max-width: 100%; /* 最大宽度设置为父元素的宽度 */
+            position: relative; /* 设置相对定位以便后续绝对定位的使用 */
+        }
+
+        #tape span {
+            display: inline-block;
+            padding: 5px 10px; /* 调整数字单元的内边距 */
+            position: relative; /* 使得每个数字单元相对定位，以便于后续的绝对定位 */
+        }
+
+        #tape span:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px; /* 边框宽度 */
+            height: 100%; /* 高度与内容高度相同 */
+            background-color: #ccc; /* 边框颜色 */
+        }
+        .tape-cell {
+            display: inline-block;
+            padding: 5px;
+            margin-right: 2px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+        }
+        .highlight {
+            background-color: #ff0;
+            color: #000;
+        }
+        #stackContainer {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        #stepContainer {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        #resultContainer {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: auto;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            border-radius: 8px;
+        }
+        #resultsolve {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: auto;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            border-radius: 8px;
+        }
+        #maxDepthContainer {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: auto;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            border-radius: 8px;
+        }
+        #recursionTreeContainer {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        .word {
+            font-size: 1em;
+        }
+        .stepsContainer li:hover {
+            background-color: #e1e5f2;
+        }
+        #text-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 20px;
+            font-family: 'Roboto', sans-serif; /* 设置字体，可以指定多个备选字体 */
+            font-weight:bold;
+            color: #333; /* 设置文字颜色 */
+        }
+        #svgContainer {
+            width: 800px;
+            height: 600px;
+            overflow: auto;
+            border: 1px solid #ccc;
+            padding: 10px; /* 添加内边距 */
+        }
+
+        svg {
+            width: auto;
+            height: 1000px;
+        }
+
+        .importantStep {
+            color: #D2691E;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #f0e9d2;
+            padding: 5px;
+            margin-bottom: 5px;
+        }
+        #pace_number, #tapenumber{
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="text-container"></div>
+    <div class="container">
+        <h1>01背包问题 - 回溯法递归仿真</h1>
+        <select id="presetItems" onchange="selectPresetItems()">
+            <option value="">选择预设物品组合...</option>
+            <option value="2,30;1,45;3,25;4,26">组合1：物品(2,30), 物品(1,45), 物品(3,25), 物品(4,26)</option>
+            <option value="5,10;10,20;15,30">组合2：物品(5,10), 物品(10,20), 物品(15,30)</option>
+            <option value="20,40;30,60;40,80">组合3：物品(20,40), 物品(30,60), 物品(40,80)</option>
+            <option value="5,12;15,30;25,44;27,46;30,50">测试用</option>
+        </select>
+        <input type="text" id="itemsInput" placeholder="或手动输入物品（格式：重量,价值 如：10,50;20,60）" />
+        <input type="number" id="capacityInput" placeholder="输入背包容量" value="50"/>
+        <button onclick="performKnapsack()">开始仿真</button>
+        <h1 class="word">过程纸带</h1>
+        <div id="tapeContainer">
+            <div id="tape"></div>
+        </div>
+        <h1 class="word">纸带使用总空间</h1>
+        <div id="tapenumber"></div>
+
+        <h2 class="word">求解步骤</h2>
+        <div id="stepContainer"></div>
+
+        <h1 class="word">步数</h1>
+        <div id="pace_number">步数:0</div>
+
+        <h1 class="word">结果</h1>
+        <div id="resultContainer"></div>
+
+        <h1 class="word">最优解</h1>
+        <div id="resultsolve"></div>
+
+        <button id="startAnimation">显示动态生成过程</button>
+        <h1 class="word">决策树</h1>
+        <div id="svgContainer">
+            <svg></svg>
+        </div>
+
+        <h1 class="word">递归栈</h1>
+        <div id="stackContainer"></div>
+        <h1 class="word">栈深度</h1>
+        <div id="maxDepthContainer">最大栈深度: 0</div>
+
+    </div>
+
+    <script>
+    function selectPresetItems() {
+        const presetSelect = document.getElementById('presetItems');
+        const itemsInput = document.getElementById('itemsInput');
+        itemsInput.value = presetSelect.value; // 设置输入框的内容为选择的预设组合
+    }
+
+    let treeData = [];
+    let nodeId = 0;
+    let pacenumber=0;
+    let tape_number=0;//纸带使用空间
+
+    function performKnapsack() {
+        const itemsInput = document.getElementById('itemsInput').value.split(';').map(item => {
+            const [weight, value] = item.split(',');
+            return { weight: parseInt(weight, 10), value: parseInt(value, 10) };
+        });
+        tape_number=itemsInput.length;
+        const capacity = parseInt(document.getElementById('capacityInput').value, 10);
+
+        // 初始化仿真结果显示区域
+        const tapeDiv = document.getElementById('tape');
+        tapeDiv.innerHTML = '';
+
+        const stackContainer = document.getElementById('stackContainer');
+        stackContainer.innerHTML = '';
+
+        const stepContainer = document.getElementById('stepContainer');
+        stepContainer.innerHTML = '';
+
+        const resultContainer = document.getElementById('resultContainer');
+        resultContainer.innerHTML = '';
+
+        const maxDepthContainer = document.getElementById('maxDepthContainer');
+        maxDepthContainer.textContent = '最大栈深度: 0';
+
+        const tapenum=document.getElementById('tapenumber');
+        tapenum.innerHTML='';
+
+        //const recursionTreeContainer = document.getElementById('recursionTreeContainer');
+        //recursionTreeContainer.innerHTML = '';
+
+        //限界函数
+        function calculateBound(items, index, currentWeight, currentValue, capacity) {
+            let valueBound = currentValue;
+            let totalWeight = currentWeight;
+
+            // 对剩余物品按价值/重量比进行排序
+            const remainingItems = items.slice(index).sort((a, b) => (b.value / b.weight) - (a.value / a.weight));
+
+            for (let i = 0; i < remainingItems.length; i++) {
+                const item = remainingItems[i];
+                if (totalWeight + item.weight <= capacity) {
+                    totalWeight += item.weight;
+                    valueBound += item.value;
+                } else {
+                    // 装入物品的一部分直到装满背包
+                    valueBound += (capacity - totalWeight) * (item.value / item.weight);
+                    break;
+                }
+            }
+
+            return valueBound;
+        }
+
+        // 定义函数：01背包问题的回溯法求解
+        function knapsackBacktrack(items, capacity) {
+            let maxProfit = 0;
+            let bestItems = [];
+            let optimalSelection = new Array(items.length).fill(0); // 新的最优解向量，初始值全为0
+            let steps = [];
+            let stackOperations = [];
+            let maxDepth = 0;
+
+            function backtrack(index, currentWeight, currentValue, chosenItems, currentSolution, depth) {
+                maxDepth = Math.max(maxDepth, depth);
+                let callDesc = `处理物品 ${index + 1} (当前重量 ${currentWeight}, 当前价值 ${currentValue}, 递归深度 ${depth})`;
+                stackOperations.push(`入栈: ${callDesc}`);
+
+                // 计算当前节点下的价值上界
+                let valueBound = calculateBound(items, index, currentWeight, currentValue, capacity);
+
+                // 如果上界小于等于当前最大价值，则进行剪枝
+                if (valueBound <= maxProfit) {
+                    steps.push({description:`剪枝：当前价值上界 ${valueBound.toFixed(2)} 不优于已知最大价值 ${maxProfit}`,
+                                optimalSelection: []});
+                    stackOperations.push(`出栈: ${callDesc}`);
+                    return;
+                }
+
+                if (index === items.length) {
+                    if (currentValue > maxProfit) {
+                        maxProfit = currentValue;
+                        bestItems = chosenItems.slice();
+
+                        optimalSelection = currentSolution.slice(); // 更新最优解向量
+                        steps.push({
+                            description: `更新最优价值至 ${currentValue}`,
+                            optimalSelection: optimalSelection
+                        });
+                    }
+                    steps.push({description: `达到叶子节点，当前价值：${currentValue}`,optimalSelection: []});
+                    stackOperations.push(`出栈: ${callDesc}`);
+                    if (index == 0) {
+                        steps.push({description:"回溯法结束：已探索所有决策路径"});
+                    }
+                    return; // 返回到上一级递归
+                } else {
+                    const { weight, value } = items[index];
+                    steps.push({description:`考虑物品 ${index + 1}：重 ${weight}，值 ${value}，决策深度 ${depth}`,
+                                optimalSelection: []});
+
+                    // 选择该物品
+                    if (currentWeight + weight <= capacity) {
+                        chosenItems.push(items[index]);
+                        steps.push({description: `选择物品 ${index + 1}：重 ${weight}，值 ${value}`,
+                                    optimalSelection: []});
+                        currentSolution[index] = 1; // 标记该物品为选中
+                        backtrack(index + 1, currentWeight + weight, currentValue + value, chosenItems, currentSolution, depth + 1);
+                        chosenItems.pop();
+                        currentSolution[index] = 0; // 回溯
+                        steps.push({description: `从物品 ${index + 1} 回溯，移除后当前重量 ${currentWeight}, 当前价值 ${currentValue}`,
+                                    optimalSelection: []});
+                    } else {
+                        steps.push({description: `无法选择物品 ${index + 1}（超出容量），跳过`,
+                                    optimalSelection: []});
+                    }
+
+                    // 不选择该物品
+                    steps.push({description: `跳过物品 ${index + 1}：重 ${weight}，值 ${value}`,
+                                optimalSelection: []});
+                    backtrack(index + 1, currentWeight, currentValue, chosenItems, currentSolution, depth + 1);
+                }
+
+                stackOperations.push(`出栈: ${callDesc}`);
+                if (index == 0) {
+                    steps.push({description:"回溯法结束：已探索所有决策路径",
+                                optimalSelection: []});
+                }
+            }
+
+
+            backtrack(0, 0, 0, [], new Array(items.length).fill(0), 1);
+
+            return { maxProfit, bestItems, optimalSelection, steps, stackOperations, maxDepth };
+        }
+        function updateTape(optimalSelection) {
+            if (optimalSelection.length === 0) {
+                return; // 直接返回，不做任何操作
+            }
+            const tapeDiv = document.getElementById('tape');
+            tapeDiv.innerHTML = '';  // 清空现有的纸带内容
+
+            optimalSelection.forEach(value => {
+                const cell = document.createElement('span');
+                cell.textContent = value;
+                cell.style.padding = '0 10px';  // 调整内边距以便于阅读
+                cell.style.width = '30px';  // 设置宽度
+                cell.style.height = '30px';  // 设置高度
+                cell.style.display = 'inline-flex';  // 使用flex布局
+                cell.style.alignItems = 'center';  // 垂直居中
+                cell.style.justifyContent = 'center';  // 水平居中
+                cell.style.marginRight = '5px';  // 右侧间隔
+                cell.style.backgroundColor = value === 1 ? '#4CAF50' : '#fff';  // 设置背景色
+                cell.style.color = value === 1 ? '#fff' : '#333';  // 设置文字颜色
+                cell.style.border = '1px solid #ccc';  // 设置边框
+                tapeDiv.appendChild(cell);
+            });
+            tapenum.innerHTML=`纸带使用总空间:${tape_number}`;
+        }
+
+
+        // 执行背包问题的回溯法求解
+        const { maxProfit, bestItems, optimalSelection, steps, stackOperations, maxDepth } = knapsackBacktrack(itemsInput, capacity);
+
+        // 显示结果到界面上
+        resultContainer.innerHTML = `<div class="importantStep">最大价值: ${maxProfit}</div>`;
+        const resultsolve=document.getElementById('resultsolve');
+        resultsolve.innerHTML = `<div class="importantStep">最优解物品: ${bestItems.map(item => `重量: ${item.weight}, 价值: ${item.value}`).join(', ')}</div>`;
+
+
+        // 准备动态显示步骤
+        let i = 0;
+        function displayNextStep() {
+            if (i < steps.length) {
+                const step = steps[i];
+                const stepElement = document.createElement('li');
+                stepElement.className = 'normalStep';
+                stepElement.textContent = step.description;
+
+                const stepsContainer = document.getElementById('stepContainer');
+                // 插入到顶部，保持顺序从上到下
+                if (stepsContainer.firstChild) {
+                    stepsContainer.insertBefore(stepElement, stepsContainer.firstChild);
+                } else {
+                    stepsContainer.appendChild(stepElement);
+                }
+                // 更新纸带显示当前最优解
+                updateTape(step.optimalSelection);
+                pacenumber++;
+                const pace_num = document.getElementById('pace_number');
+                pace_num.innerHTML = `所用步数:${pacenumber}`;
+                i++;
+                setTimeout(displayNextStep, 100); // 逐步显示，每个步骤间隔1秒
+            }
+        }
+        // 调用显示函数
+        displayNextStep();
+        //stepContainer.innerHTML = `<h2 class="word">求解步骤</h2>${steps.map(step => `<li class="normalStep">${step}</li>`).join('')}`;
+
+
+        stackContainer.innerHTML = `<h2 class="word">递归栈</h2>${stackOperations.map(op => `<div>${op}</div>`).join('')}`;
+
+        maxDepthContainer.textContent = `最大栈深度: ${maxDepth}`;
+
+
+        const itemsInput_1 = document.getElementById('itemsInput').value.split(';').map((item, index) => {
+                const [weight, value] = item.split(',');
+                return {
+                    id: `node${index}`,
+                    weight: parseInt(weight, 10),
+                    value: parseInt(value, 10),
+                    name: `物品${weight},${value}`
+                };
+            });
+            const capacity_1 = parseInt(document.getElementById('capacityInput').value, 10);
+            treeData = [{id: 'root', name: '根节点', parent: '', creationOrder: 0}];
+            knapsackModule(itemsInput_1,capacity_1);
+            updateVisualization();//解空间树
+    }
+
+    //限界函数
+    function calculateBoundForVisualization(items, index, currentWeight, currentValue, capacity) {
+        let valueBound = currentValue;
+        let totalWeight = currentWeight;
+
+        // 对剩余物品按价值/重量比进行排序
+        const remainingItems = items.slice(index).sort((a, b) => (b.value / b.weight) - (a.value / a.weight));
+
+        for (let i = 0; i < remainingItems.length; i++) {
+            const item = remainingItems[i];
+            if (totalWeight + item.weight <= capacity) {
+                totalWeight += item.weight;
+                valueBound += item.value;
+            } else {
+                valueBound += (capacity - totalWeight) * (item.value / item.weight);
+                break;
+            }
+        }
+
+        return valueBound;
+    }
+    function knapsackModule(items, capacity) {
+        let maxProfit_1 = 0;  // 这里定义maxProfit
+        let creationOrder = 1;  // 初始化节点创建顺序计数器
+
+        function knapsackBacktrack_1(index, currentWeight, currentValue, currentItems, parentId) {
+            if (index === items.length) {
+                if (currentValue > maxProfit_1) {
+                    maxProfit_1 = currentValue; // 更新最大利润
+                }
+                treeData.push({id: `${parentId}-end`, name: `结束 总价值: ${currentValue}, 使用容量: ${currentWeight}`, parent: parentId, creationOrder: creationOrder++ });
+                return;
+            }
+
+            const item = items[index];
+            const includeWeight = currentWeight + item.weight;
+            const includeValue = currentValue + item.value;
+            const currentNodeId = `${parentId}-${index}`;
+            let valueBound = calculateBoundForVisualization(items, index, currentWeight, currentValue, capacity);
+
+            if (valueBound < maxProfit_1) {
+                treeData.push({id: currentNodeId, name: `剪枝 ${item.name} (上界 ${valueBound.toFixed(2)} <= 最大 ${maxProfit_1})`, parent: parentId, pruned: true, creationOrder: creationOrder++ });
+                return;
+            }
+
+            if (includeWeight <= capacity) {
+                treeData.push({id: currentNodeId, name: `选择 ${item.name}`, parent: parentId,creationOrder: creationOrder++ });
+                knapsackBacktrack_1(index + 1, includeWeight, includeValue, currentItems.concat(item), `${parentId}-${index}`);
+            } else {
+                treeData.push({id: currentNodeId, name: `剪枝 ${item.name} (超出容量)`, parent: parentId, pruned: true,creationOrder: creationOrder++ });
+            }
+
+            treeData.push({id: `${parentId}-${index}-skip`, name: `跳过 ${item.name}`, parent: parentId,creationOrder: creationOrder++ });
+            knapsackBacktrack_1(index + 1, currentWeight, currentValue, currentItems, `${parentId}-${index}-skip`);
+        }
+
+        knapsackBacktrack_1(0, 0, 0, [], 'root');
+        return treeData;
+    }
+    function updateVisualization() {
+        const margin = { top: 40, right: 200, bottom: 40, left: 200 }; // 增加右边距以适应文本
+        const width = 1500 - margin.left - margin.right; // 容器的内部宽度
+        const height = 1000 - margin.top - margin.bottom; // 容器的内部高度
+
+        // 选择SVG容器，设置宽高，并添加一个组元素来应用边距
+        const svg = d3.select("#svgContainer").html("").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        // 生成树布局
+        const root = d3.stratify()
+            .id(d => d.id)
+            .parentId(d => d.parent)(treeData);
+        const treeLayout = d3.tree().size([height, width]);
+        treeLayout(root);
+
+        // 渲染连接线
+        const links = svg.selectAll(".link")
+            .data(root.links())
+            .enter().append("path")
+            .attr("class", "link")
+            .attr("d", d3.linkHorizontal()
+                .x(d => d.y)
+                .y(d => d.x))
+            .attr("fill", "none")
+            .attr("stroke", d => d.source.data.pruned ? "#f00" : "#ccc")
+            .attr("stroke-width", "1.5px")
+            .attr("stroke-opacity",0);
+
+        // 渲染节点
+        const nodes = svg.selectAll(".node")
+            .data(root.descendants())
+            .enter().append("g")
+            .attr("class", "node")
+            .attr("transform", d => `translate(${d.y},${d.x})`);
+
+        // 渲染节点圆圈
+        nodes.append("circle")
+        .attr("r", 10)
+        .attr("fill", d => d.data.pruned ? "#f00" : "#fff")
+        .attr("stroke", "steelblue")
+        .attr("stroke-opacity", 0)    // 最初设置边框不可见
+        .attr("fill-opacity", d => d.data.id === "root" ? 1 : 0); // 仅根节点初始可见
+
+        // 渲染节点文本
+        nodes.append("text")
+            .attr("dy", ".35em")
+            .attr("x", d => d.children || d._children ? -15 : 15) // 调整文本位置以避免重叠
+            .attr("text-anchor", d => d.children || d._children ? "end" : "start")
+            .text(d => d.data.name)
+            .style("font-size", "12px") // 也可以调整字体大小以适应显示
+            .style("fill", d => d.data.pruned ? "#f00" : "black")
+            .attr("fill-opacity", 0);
+    }
+    function revealElements() {
+    const svg = d3.select("#svgContainer").select("svg g");
+    const delayIncrement = 200; // 每个元素之间的延迟时间
+
+    // 重置所有元素的可见性
+    svg.selectAll(".link").attr("stroke-opacity", 0);
+    svg.selectAll(".node circle").attr("fill-opacity", 0).attr("stroke-opacity", 0);
+    svg.selectAll(".node text").attr("fill-opacity", 0);
+
+    // 遍历所有连接线，并按目标节点的 creationOrder 显示
+    svg.selectAll(".link")
+        .transition()
+        .duration(500)
+        .delay((d) => d.target.data.creationOrder * delayIncrement * 3)
+        .attr("stroke-opacity", 1);
+
+    // 遍历所有节点
+    svg.selectAll(".node")
+        .each(function (d) {
+            let node = d3.select(this);
+            let circle = node.select("circle");
+            let text = node.select("text");
+
+            // 显示节点圆圈动画
+            circle.transition()
+                .duration(500)
+                .delay(d.data.creationOrder * delayIncrement * 3 + delayIncrement) // 使用节点的 creationOrder 属性计算延迟
+                .attr("fill-opacity", 1)
+                .attr("stroke-opacity", 1);
+
+            // 显示文本动画
+            text.transition()
+                .duration(500)
+                .delay(d.data.creationOrder * delayIncrement * 3 + delayIncrement * 2) // 使用节点的 creationOrder 属性计算延迟
+                .attr("fill-opacity", 1);
+        });
+}
+
+document.getElementById("startAnimation").addEventListener('click', revealElements);
+
+
+
+    //文字闪烁效果
+const text = "东北大学"; // 要显示的文字
+        const textContainer = document.getElementById('text-container');
+        let index = 0;
+
+        function showNextLetter() {
+            if (index < text.length) {
+                textContainer.textContent += text[index];
+                index++;
+                setTimeout(showNextLetter, 200); // 控制字母显示的速度，这里每200毫秒显示一个字母
+            } else {
+                setTimeout(hideLetters, 1000); // 显示完毕后，等待1秒后隐藏字母
+            }
+        }
+
+        function hideLetters() {
+            const textLength = textContainer.textContent.length;
+            if (textLength > 0) {
+                textContainer.textContent = textContainer.textContent.slice(0, textLength - 1);
+                setTimeout(hideLetters, 100); // 控制字母消失的速度，这里每100毫秒消失一个字母
+            } else {
+                index = 0; // 重置索引，以便下一次显示
+                setTimeout(showNextLetter, 1000); // 消失完毕后，等待1秒后重新显示字母
+            }
+        }
+
+        // 开始显示文字
+        showNextLetter();
+</script>
+
+</body>
+</html>

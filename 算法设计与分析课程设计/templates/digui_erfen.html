@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>递归函数仿真系统 - 二分搜索</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        input[type="text"], input[type="number"], select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #tapeContainer {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8e8e8; /* 轻微的灰色背景 */
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #tape {
+            padding: 5px;
+            border: 1px solid #ccc; /* 边框让它更像纸带 */
+            border-radius: 8px;
+            white-space: nowrap;
+            overflow-x: auto; /* 添加横向滚动条 */
+            max-width: 100%; /* 最大宽度设置为父元素的宽度 */
+            position: relative; /* 设置相对定位以便后续绝对定位的使用 */
+        }
+
+        #tape span {
+            display: inline-block;
+            padding: 5px 10px; /* 调整数字单元的内边距 */
+            position: relative; /* 使得每个数字单元相对定位，以便于后续的绝对定位 */
+        }
+
+        #tape span:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px; /* 边框宽度 */
+            height: 100%; /* 高度与内容高度相同 */
+            background-color: #ccc; /* 边框颜色 */
+        }
+        .tape-cell {
+            display: inline-block;
+            padding: 5px;
+            margin-right: 2px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+        }
+        #tapeIntervalContainer {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8e8e8; /* 轻微的灰色背景 */
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #tapeInterval {
+            padding: 5px;
+            border: 1px solid #ccc; /* 边框让它更像纸带 */
+            border-radius: 8px;
+            white-space: nowrap;
+            overflow-x: auto; /* 添加横向滚动条 */
+            max-width: 100%; /* 最大宽度设置为父元素的宽度 */
+            position: relative; /* 设置相对定位以便后续绝对定位的使用 */
+        }
+
+        #tapeInterval span {
+            display: inline-block;
+            padding: 5px 10px; /* 调整数字单元的内边距 */
+            position: relative; /* 使得每个数字单元相对定位，以便于后续的绝对定位 */
+        }
+
+        #tapeInterval span:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px; /* 边框宽度 */
+            height: 100%; /* 高度与内容高度相同 */
+            background-color: #ccc; /* 边框颜色 */
+        }
+        .highlight {
+            background-color: #ff0;
+            color: #000;
+        }
+        #stackContainer {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        #resultContainer {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: auto;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            border-radius: 8px;
+        }
+        .stack-entry {
+            padding: 5px;
+            margin-bottom: 2px;
+            background-color: #e8e8e8;
+            border: 1px solid #ddd;
+        }
+        #maxDepthContainer{
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: auto;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            border-radius: 8px;
+        }
+        #recursionTreeContainer {
+            width: 100%;
+            min-height: 400px;
+            max-height: 800px; /* Set a maximum height with a vertical scrollbar */
+            overflow: auto; /* Allow scrolling */
+            position: relative; /* Needed for absolute positioning of children */
+        }
+        .word{
+            font-size:1em;
+        }
+
+        #stack_qk{
+            font-size: 1em;
+            font-family: 'Roboto', sans-serif; /* 设置字体，可以指定多个备选字体 */
+            font-weight:bold;
+            color: #333; /* 设置文字颜色 */
+        }
+
+        #text-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 20px;
+            font-family: 'Roboto', sans-serif; /* 设置字体，可以指定多个备选字体 */
+            font-weight:bold;
+            color: #333; /* 设置文字颜色 */
+        }
+
+        #taperesultContainer {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8e8e8; /* 轻微的灰色背景 */
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #taperesult {
+            padding: 5px;
+            border: 1px solid #ccc; /* 边框让它更像纸带 */
+            border-radius: 8px;
+            white-space: nowrap;
+            overflow-x: auto; /* 添加横向滚动条 */
+            max-width: 100%; /* 最大宽度设置为父元素的宽度 */
+            position: relative; /* 设置相对定位以便后续绝对定位的使用 */
+        }
+
+        #taperesult span {
+            display: inline-block;
+            padding: 5px 10px; /* 调整数字单元的内边距 */
+            position: relative; /* 使得每个数字单元相对定位，以便于后续的绝对定位 */
+        }
+
+        #taperesult span:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px; /* 边框宽度 */
+            height: 100%; /* 高度与内容高度相同 */
+            background-color: #ccc; /* 边框颜色 */
+        }
+
+        #tapenumber, #pace_number
+        {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="text-container"></div>
+    <div class="container">
+        <h1>二分搜索递归仿真</h1>
+        <select id="arraySelector" onchange="handleArraySelection()">
+            <option value="">选择或输入自定义数组</option>
+            <option value="1,2,3,4,5,6,7,8,9,10">1 到 10</option>
+            <option value="10,20,30,40,50,60,70,80,90,100">10 到 100 步长10</option>
+            <option value="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30
+,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50">1 到 50</option>
+            <option value="0,1,2,3,4,6,7,8,9,10">测试样例</option>
+            <option value="custom">自定义数组</option>
+        </select>
+
+        <input type="text" id="arrayInput" placeholder="输入有序数组，例如: 1,3,5,7,9" style="display:none;" />
+        <input type="number" id="searchValue" placeholder="请输入搜索值" value="5"/>
+        <button onclick="performBinarySearch()">开始搜索</button>
+
+        <h1 class="word">输入纸带</h1>
+        <div id="tapeContainer">
+            <div id="tape"></div>
+        </div>
+        <h1 class="word">工作纸带</h1>
+        <div id="tapeIntervalContainer">
+            <div id="tapeInterval"></div>
+        </div>
+        <h1 class="word">结果纸带</h1>
+        <div id="taperesultContainer">
+            <div id="taperesult"></div>
+        </div>
+
+        <h1 class="word">纸带使用总空间</h1>
+        <div id="tapenumber"></div>
+        <h1 class="word">步数</h1>
+        <div id="pace_number"></div>
+
+
+        <h1 class="word">递归栈</h1><div id="stack_qk">当前情况:</div>
+        <div id="stackContainer"></div>
+
+        <h1 class="word">搜索结果</h1>
+        <div id="resultContainer"></div>
+
+        <h1 class="word">最大栈深度</h1>
+        <div id="maxDepthContainer">最大栈深度: 0</div>
+        <h1 class="word">递归树</h1>
+        <div id="recursionTreeContainer" style="width: 100%; max-height: 500px; height: auto;
+            border: 1px solid #ccc; margin-top: 20px; overflow-x: hidden; overflow-y: auto;">
+        </div>
+
+    </div>
+
+    <script>
+        let stack = [];
+        let maxDepth = 0;
+        let tapeusage=0;
+        let pacenumber=0;
+
+        function handleArraySelection() {
+            const selector = document.getElementById('arraySelector');
+            const customInput = document.getElementById('arrayInput');
+            if (selector.value === "custom") {
+                customInput.style.display = "block";
+            } else {
+                customInput.style.display = "none";
+            }
+        }
+
+        function performBinarySearch() {
+            const selector = document.getElementById('arraySelector');
+            const customInput = document.getElementById('arrayInput');
+            const arrayInput = selector.value === "custom" ? customInput.value.split(',').map(x => parseInt(x)) : selector.value.split(',').map(x => parseInt(x));
+            const searchValue = parseInt(document.getElementById('searchValue').value);
+            const tape = document.getElementById('tape');
+            tape.innerHTML = '';
+            const results = document.getElementById('resultContainer');
+            results.innerHTML = '';
+            //工作纸带
+            const tapeInterval = document.getElementById('tapeInterval');
+            tapeInterval.innerHTML = '';
+            tapeusage = arrayInput.length;
+            //结果纸带
+            const taperesult=document.getElementById('taperesult');
+            taperesult.innerHTML = '';
+
+            const pace_num=document.getElementById('pace_number');
+            pace_num.innerHTML ='步数:0';
+
+            arrayInput.forEach((value, index) => {
+                const cell = document.createElement('span');
+                cell.textContent = value;
+                cell.className = 'tape-cell';
+                styleCell(cell);
+                tape.appendChild(cell);
+            });
+
+            const stack_qk=document.getElementById('stack_qk');
+            stack_qk.innerHTML ='当前情况:未开始' ;
+
+            setTimeout(()=>{
+                // Reset the recursion tree visualization
+            nodes = [];  // Reset nodes array
+            const treeContainer = document.getElementById('recursionTreeContainer');
+            treeContainer.innerHTML = '';  // Clear the tree container
+
+            stack = [];  // Reset stack
+            maxDepth = 0;  // Reset max depth
+            updateMaxDepthDisplay();
+            updateStackDisplay();
+            binarySearch(arrayInput, 0, arrayInput.length - 1, searchValue, 1);
+            },1000)
+
+            const tapenumber=document.getElementById('tapenumber');
+            tapenumber.innerHTML = tapeusage;
+        }
+
+
+        function binarySearch(arr, left, right, x, depth, parentIndex = null) {
+            if (right >= left) {
+                const mid = left + Math.floor((right - left) / 2);
+                addNode(`查找${x} in 区间[${left},${right}]`, depth, parentIndex);
+                highlight(left,right,mid);
+                stack.push(`binarySearch(arr, ${left}, ${right}, ${x}, depth ${depth}) 当前搜索区间:${arr[left]} ${arr[mid]} ${arr[right]} 递归栈深度:${depth}`);
+                pacenumber++;
+                if (depth > maxDepth) {
+                    maxDepth = depth;
+                    updateMaxDepthDisplay();
+                }
+                const stack_qk=document.getElementById('stack_qk');
+                stack_qk.innerHTML ='当前情况:入栈' ;
+                updateStackDisplay();
+
+                setTimeout(() => {
+                    if (arr[mid] === x) {
+                        updateResult(`找到目标搜索值 ${x} 在索引 ${mid}`);
+                        addNode(`找到值 ${x} 在索引 ${mid}`, depth + 1, nodes.length - 1);
+                        //结果纸带
+                        const taperesult=document.getElementById('taperesult');
+                        taperesult.innerHTML = '';
+                        const cell = document.createElement('span');
+                        cell.textContent = mid;
+                        cell.style.padding = '0 5px';
+                        styleCell(cell);
+                        taperesult.appendChild(cell);
+
+                        const stack_qk=document.getElementById('stack_qk');
+                        stack_qk.innerHTML ='当前情况:出栈' ;
+                        clearStackAfterSearch();
+
+                        setTimeout(()=>{
+                             const cells = document.querySelectorAll('.tape-cell');
+                             cells.forEach(cell => cell.style.backgroundColor = '#fff');
+                             const pace_num = document.getElementById('pace_number');
+                             pace_num.innerHTML = `步数:${pacenumber}`;
+                        },1000)
+                    } else if (arr[mid] > x) {
+                        pacenumber++;
+                        binarySearch(arr, left, mid - 1, x, depth + 1, nodes.length - 1);
+                    } else {
+                        pacenumber++;
+                        binarySearch(arr, mid + 1, right, x, depth + 1, nodes.length - 1);
+                    }
+                }, 2000);
+                const tapeInterval = document.getElementById('tapeInterval');
+                const cell = document.createElement('span');
+                cell.textContent = `${depth}`;
+                cell.className = 'tape-cell';
+                styleCell(cell);
+                tapeInterval.appendChild(cell);
+                tapeusage++;
+                const tapenumber = document.getElementById('tapenumber');
+                tapenumber.innerHTML = tapeusage;
+            } else {
+                setTimeout(()=>{
+                     const cells = document.querySelectorAll('.tape-cell');
+                     cells.forEach(cell => cell.style.backgroundColor = '#fff');
+
+                },500)
+
+                updateResult(`目标搜索值 ${x} 不在搜索的数组中.`);
+                addNode(`值${x} 不在区间 [${left},${right}]`, depth + 1, parentIndex);
+                //结果纸带
+                const taperesult=document.getElementById('taperesult');
+                taperesult.innerHTML = '';
+                const cell = document.createElement('span');
+                cell.textContent = -1;
+                cell.style.padding = '0 5px';
+                styleCell(cell);
+                taperesult.appendChild(cell);
+                tapeusage++;
+                const tapenumber = document.getElementById('tapenumber');
+                tapenumber.innerHTML = tapeusage;
+
+                const pace_num = document.getElementById('pace_number');
+                pace_num.innerHTML = `步数:${pacenumber}`;
+
+                const stack_qk=document.getElementById('stack_qk');
+                stack_qk.innerHTML ='当前情况:出栈' ;
+                clearStackAfterSearch();
+            }
+
+        }
+
+        function clearStackAfterSearch() {
+            function popStack() {
+                if (stack.length > 0) {
+                    stack.pop();
+                    updateStackDisplay();
+                    setTimeout(popStack, 2000);  // Delay between pops
+                }
+            }
+            popStack();  // Start the gradual popping process
+        }
+
+        function updateStackDisplay() {
+            const stackContainer = document.getElementById('stackContainer');
+            stackContainer.innerHTML = '';
+            stack.slice().reverse().forEach(entry => {
+                const div = document.createElement('div');
+                div.className = 'stack-entry';
+                div.textContent = entry;
+                stackContainer.appendChild(div);
+            });
+        }
+
+        function updateResult(text) {
+            const resultContainer = document.getElementById('resultContainer');
+            resultContainer.textContent = text;
+            // 设置文字样式
+            resultContainer.style.color = 'orange'; // 设置文字颜色为蓝色
+            resultContainer.style.fontSize = '16px'; // 设置文字大小为16像素
+            resultContainer.style.fontWeight = 'bold'; // 设置文字为粗体
+            resultContainer.style.fontFamily = 'Arial, sans-serif'; // 设置字体类型
+            resultContainer.style.background='white'; // 颜色
+        }
+
+        function updateMaxDepthDisplay() {
+            const maxDepthContainer = document.getElementById('maxDepthContainer');
+            maxDepthContainer.textContent = `最大栈深度: ${maxDepth}`;
+            maxDepthContainer.style.color = 'orange'; // 设置文字颜色为蓝色
+            maxDepthContainer.style.fontSize = '16px'; // 设置文字大小为16像素
+            maxDepthContainer.style.fontWeight = 'bold'; // 设置文字为粗体
+            maxDepthContainer.style.fontFamily = 'Arial, sans-serif'; // 设置字体类型
+            maxDepthContainer.style.background='white'; // 文字居中显示
+        }
+
+        function highlight(left,right,mid) {
+            const cells = document.querySelectorAll('.tape-cell');
+            cells.forEach(cell => cell.style.backgroundColor = '#fff');
+
+            cells[mid].style.backgroundColor = '#ff0';
+            cells[left].style.backgroundColor = '#ab1';
+            cells[right].style.backgroundColor = '#ab1';
+        }
+
+let nodes = []; // To store the nodes for visualization
+
+function drawTree() {
+    const container = document.getElementById('recursionTreeContainer');
+    container.innerHTML = ""; // Clear the container
+    let maxDepth = nodes.reduce((max, node) => Math.max(max, node.depth), 0);
+    let widthMultiplier = 50; // Adjust this to increase space between nodes
+
+    // Calculate initial positions
+    let levels = Array.from({ length: maxDepth + 1 }, () => []);
+    nodes.forEach(node => {
+        levels[node.depth].push(node);
+    });
+
+    // Assign x positions
+    levels.forEach((level, depth) => {
+        let x = 0;
+        level.forEach((node, index) => {
+            node.x = x;
+            x += (1 << (maxDepth - depth)) * widthMultiplier; // Space nodes based on tree depth
+        });
+    });
+
+    // Create SVG container for curves
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.style.width = '100%';
+    svg.style.height = `${(maxDepth + 1) * 100}px`;
+    svg.style.position = 'absolute';
+    svg.style.top = '0';
+    svg.style.left = '0';
+    container.appendChild(svg);
+
+    // Create nodes and lines
+    nodes.forEach(node => {
+        // Create node element
+        const nodeElement = document.createElement('div');
+        nodeElement.className = 'node';
+        nodeElement.style.position = 'absolute';
+        nodeElement.style.left = `${node.x + 10}px`; // Adjust horizontal centering
+        nodeElement.style.top = `${node.depth * 100 + 20}px`; // Adjust vertical centering
+        nodeElement.style.width = '20px'; // Node width
+        nodeElement.style.height = '20px'; // Node height
+        nodeElement.style.borderRadius = '50%'; // Make nodes circular
+        nodeElement.style.border = '1px solid black';
+
+        // Add click event listener to toggle text display and color
+        nodeElement.addEventListener('click', () => {
+            textElement.style.display = textElement.style.display === 'none' ? 'block' : 'none';
+            nodeElement.style.backgroundColor = nodeElement.style.backgroundColor === 'red' ? 'white' : 'red';
+        });
+
+        container.appendChild(nodeElement);
+
+        // Create hidden text element
+        const textElement = document.createElement('div');
+        textElement.textContent = node.value;
+        textElement.style.position = 'absolute';
+        textElement.style.left = `${node.x + 35}px`; // Position to the right of the node
+        textElement.style.top = `${node.depth * 100 + 20}px`;
+        textElement.style.display = 'none'; // Hide text initially
+        container.appendChild(textElement);
+
+        // Draw curved lines using SVG (if not root node)
+        if (node.parent !== null) {
+            const parent = nodes[node.parent];
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const startX = parent.x + 20;
+            const startY = parent.depth * 100 + 40;
+            const endX = node.x + 20;
+            const endY = node.depth * 100 + 20;
+
+            // Calculate control points for a simple cubic Bezier curve
+            const ctrlX1 = (startX + endX) / 2;
+            const ctrlY1 = startY;
+            const ctrlX2 = (startX + endX) / 2;
+            const ctrlY2 = endY;
+
+            path.setAttribute("d", `M${startX},${startY} C${ctrlX1},${ctrlY1} ${ctrlX2},${ctrlY2} ${endX},${endY}`);
+            path.setAttribute("stroke", "black");
+            path.setAttribute("stroke-width", "2");
+            path.setAttribute("fill", "none");
+
+            svg.appendChild(path);
+        }
+    });
+
+    // Set container height based on tree depth
+    container.style.height = `${(maxDepth + 1) * 100}px`;
+    container.style.width = '100%';
+    container.style.position = 'relative';
+    container.style.overflowX = 'auto';
+}
+
+function addNode(value, depth, parentIndex, isLeft) {
+    let node = {
+        value: value,
+        depth: depth,
+        left: undefined,
+        right: undefined,
+        parent: parentIndex
+    };
+    let currentIndex = nodes.push(node) - 1;
+
+    // Update parent's child references
+    if (parentIndex !== null) {
+        if (isLeft) {
+            nodes[parentIndex].left = currentIndex;
+        } else {
+            nodes[parentIndex].right = currentIndex;
+        }
+    }
+    drawTree(); // Redraw tree after adding a node
+}
+
+
+
+        function styleCell(cell) {
+            cell.style.padding = '0 10px';  // 设置适当的内边距以便于阅读
+            cell.style.width = '30px';  // 设置宽度
+            cell.style.height = '30px';  // 设置高度
+            cell.style.display = 'inline-flex';  // 使用flex布局
+            cell.style.alignItems = 'center';  // 垂直居中
+            cell.style.justifyContent = 'center';  // 水平居中
+            cell.style.marginRight = '5px';  // 右侧间隔
+            cell.style.color = '#333';  // 设置文字颜色为深色
+            cell.style.border = '1px solid #ccc';  // 设置边框颜色
+        }
+//文字闪烁效果
+const text = "东北大学"; // 要显示的文字
+        const textContainer = document.getElementById('text-container');
+        let index = 0;
+
+        function showNextLetter() {
+            if (index < text.length) {
+                textContainer.textContent += text[index];
+                index++;
+                setTimeout(showNextLetter, 200); // 控制字母显示的速度，这里每200毫秒显示一个字母
+            } else {
+                setTimeout(hideLetters, 1000); // 显示完毕后，等待1秒后隐藏字母
+            }
+        }
+
+        function hideLetters() {
+            const textLength = textContainer.textContent.length;
+            if (textLength > 0) {
+                textContainer.textContent = textContainer.textContent.slice(0, textLength - 1);
+                setTimeout(hideLetters, 100); // 控制字母消失的速度，这里每100毫秒消失一个字母
+            } else {
+                index = 0; // 重置索引，以便下一次显示
+                setTimeout(showNextLetter, 1000); // 消失完毕后，等待1秒后重新显示字母
+            }
+        }
+
+        // 开始显示文字
+        showNextLetter();
+
+    </script>
+</body>
+</html>

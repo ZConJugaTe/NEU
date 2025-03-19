@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>01背包问题 - 备忘录法递归仿真系统</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        input[type="text"], input[type="number"], select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .tape-cell {
+            display: inline-block;
+            padding: 5px;
+            margin-right: 2px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+        }
+        .highlight {
+            background-color: #ff0;
+            color: #000;
+        }
+        #stackContainer {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        #stepContainer {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+
+        #resultContainer {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: auto;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            border-radius: 8px;
+        }
+        #resultsolve{
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: auto;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            border-radius: 8px;
+        }
+
+        .stack-entry {
+            padding: 5px;
+            margin-bottom: 2px;
+            background-color: #e8e8e8;
+            border: 1px solid #ddd;
+        }
+        #maxDepthContainer {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: auto;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            border-radius: 8px;
+        }
+        #recursionTreeContainer {
+            width: 100%;
+            min-height: 400px;
+            max-height: 800px; /* Set a maximum height with a vertical scrollbar */
+            overflow: auto; /* Allow scrolling */
+            position: relative; /* Needed for absolute positioning of children */
+        }
+        .word {
+            font-size: 1em;
+        }
+
+        /* 文本样式 */
+        .normalStep {
+            color: #333;
+            font-size: 14px;
+        }
+
+        .memoStep {
+            color: #007BFF;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .importantStep {
+            color: #D2691E;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #f0e9d2;
+            padding: 5px;
+            margin-bottom: 5px;
+        }
+
+        .stepsContainer li:hover {
+            background-color: #e1e5f2;
+        }
+
+        #text-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 20px;
+            font-family: 'Roboto', sans-serif; /* 设置字体，可以指定多个备选字体 */
+            font-weight:bold;
+            color: #333; /* 设置文字颜色 */
+        }
+
+        #pace_number, #tapenumber {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        #tapeContainer {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8e8e8; /* 轻微的灰色背景 */
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #tape {
+            padding: 5px;
+            border: 1px solid #ccc; /* 边框让它更像纸带 */
+            border-radius: 8px;
+            white-space: nowrap;
+            overflow-x: auto; /* 添加横向滚动条 */
+            max-width: 100%; /* 最大宽度设置为父元素的宽度 */
+            position: relative; /* 设置相对定位以便后续绝对定位的使用 */
+        }
+
+        #tape span {
+            display: inline-block;
+            padding: 5px 10px; /* 调整数字单元的内边距 */
+            position: relative; /* 使得每个数字单元相对定位，以便于后续的绝对定位 */
+        }
+
+        #tape span:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px; /* 边框宽度 */
+            height: 100%; /* 高度与内容高度相同 */
+            background-color: #ccc; /* 边框颜色 */
+        }
+        .tape-cell {
+            display: inline-block;
+            padding: 5px;
+            margin-right: 2px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+<div id="text-container"></div>
+
+    <div class="container">
+        <h1>01背包问题 - 备忘录法递归仿真</h1>
+        <select id="presetItems" onchange="selectPresetItems()">
+            <option value="">选择预设物品组合...</option>
+            <option value="2,30;1,45;3,25;4,26">组合1：物品(2,30), 物品(1,45), 物品(3,25), 物品(4,26)</option>
+            <option value="5,10;10,20;15,30">组合2：物品(5,10), 物品(10,20), 物品(15,30)</option>
+            <option value="20,40;30,60;40,80">组合3：物品(20,40), 物品(30,60), 物品(40,80)</option>
+            <option value="5,12;15,30;25,44;27,46;30,50">测试用</option>
+        </select>
+        <input type="text" id="itemsInput" placeholder="或手动输入物品（格式：重量,价值 如：10,50;20,60）" />
+        <input type="number" id="capacityInput" placeholder="输入背包容量" value="50"/>
+        <button onclick="performKnapsack()">开始求解</button>
+
+        <h1 class="word">过程纸带</h1>
+        <div id="tapeContainer">
+            <div id="tape"></div>
+        </div>
+        <h1 class="word">纸带使用总空间</h1>
+        <div id="tapenumber"></div>
+
+        <h2 class="word">求解步骤</h2>
+        <div id="stepContainer"></div>
+
+        <h1 class="word">步数</h1>
+        <div id="pace_number"></div>
+
+        <h2 class="word">递归栈</h2>
+        <div id="stackContainer"></div>
+        <h2 class="word">最大栈深度</h2>
+        <div id="maxDepthContainer">最大栈深度: 0</div>
+
+
+        <h1 class="word">最大价值</h1>
+        <div id="resultContainer"></div>
+
+        <h1 class="word">最优解</h1>
+        <div id="resultsolve"></div>
+
+        <h2 class="word">递归树</h2>
+        <div id="recursionTreeContainer" style="width: 100%; min-height: 400px; height: auto; border: 1px solid #ccc; margin-top: 20px; overflow: auto;"></div>
+    </div>
+
+
+<script>
+    let tape_number=0;
+    function selectPresetItems() {
+        const presetSelect = document.getElementById('presetItems');
+        const itemsInput = document.getElementById('itemsInput');
+        itemsInput.value = presetSelect.value; // 设置输入框的内容为选择的预设组合
+    }
+
+function performKnapsack() {
+    const itemsInput = document.getElementById('itemsInput').value.split(';').map(item => {
+        const [weight, value] = item.split(',');
+        return { weight: parseInt(weight, 10), value: parseInt(value, 10) };
+    });
+    const capacity = parseInt(document.getElementById('capacityInput').value, 10);
+    tape_number=0;
+
+    fetch('/solve_knapsack_bei', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ items: itemsInput, capacity: capacity })
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        //显示最大价值
+        const resultContainer = document.getElementById('resultContainer');
+        resultContainer.innerHTML = `<div class="importantStep">最大价值: ${data.maxProfit}</div>`;
+
+        //显示最优解
+        const resultsolve = document.getElementById('resultsolve');
+        resultsolve.innerHTML = `<div class="importantStep">最优解物品: ${data.bestItems.map(item => `重量: ${item.weight}, 价值: ${item.value}`).join(', ')}</div>`;
+
+        //纸带显示
+        const tapeDiv=document.getElementById('tape');
+        tapeDiv.innerHTML = '';
+        data.optimalSelection.forEach(value => {
+                const cell = document.createElement('span');
+                cell.textContent = value;
+                cell.style.padding = '0 10px';  // 调整内边距以便于阅读
+                cell.style.width = '30px';  // 设置宽度
+                cell.style.height = '30px';  // 设置高度
+                cell.style.display = 'inline-flex';  // 使用flex布局
+                cell.style.alignItems = 'center';  // 垂直居中
+                cell.style.justifyContent = 'center';  // 水平居中
+                cell.style.marginRight = '5px';  // 右侧间隔
+                cell.style.backgroundColor = value === 1 ? '#4CAF50' : '#fff';  // 设置背景色
+                cell.style.color = value === 1 ? '#fff' : '#333';  // 设置文字颜色
+                cell.style.border = '1px solid #ccc';  // 设置边框
+                tape_number++;
+                tapeDiv.appendChild(cell);
+            });
+        const tape_num=document.getElementById('tapenumber');
+        tape_num.innerHTML = tape_number;
+
+        //显示解题步骤
+        const stepsContainer = document.getElementById('stepContainer');
+        stepsContainer.innerHTML='';
+        stepsContainer.innerHTML += '<ul id="stepsList"></ul>';
+        function displaySteps(steps, index) {
+            const stepsList = document.getElementById('stepsList');
+
+            if (index < steps.length) {
+                const step = steps[index];
+                const li = document.createElement('li');
+
+                if (step.includes('使用备忘录')) {
+                    li.className = 'memoStep';
+                } else {
+                    li.className = 'normalStep';
+                }
+                li.textContent = step;
+                stepsList.appendChild(li);
+
+                // 更新步数
+                const paceNumber = document.getElementById('pace_number');
+                paceNumber.textContent = `步数: ${index + 1}`;
+
+                // 每隔1秒显示下一条步骤
+                setTimeout(() => displaySteps(steps, index + 1), 200);
+            }
+        }
+        const steps = JSON.stringify(data.steps);
+        displaySteps(JSON.parse(steps), 0);
+
+
+        //显示栈操作
+        const stackOpsContainer = document.getElementById('stackContainer');
+        stackOpsContainer.innerHTML = "<h3>栈操作：</h3>";
+
+        function displayStackOperations(operations, index) {
+            if (index < operations.length) {
+                stackOpsContainer.innerHTML += `<div>${operations[index]}</div>`;
+                setTimeout(() => displayStackOperations(operations, index + 1), 200); // 每隔1秒显示一步操作
+            }
+        }
+        const stackOperations = JSON.stringify(data.stackOperations);
+        displayStackOperations(JSON.parse(stackOperations), 0);
+
+
+        const maxDepthContainer = document.getElementById('maxDepthContainer');
+        maxDepthContainer.textContent = `最大栈深度: ${data.maxDepth}`;
+
+
+        // 构建递归树
+        const recursionTreeContainer = document.getElementById('recursionTreeContainer');
+        recursionTreeContainer.innerHTML = ''; // 清空容器
+
+        const recursionTree = document.createElement('div');
+        recursionTree.classList.add('recursion-tree');
+
+        let currentDepth = 0;
+        let currentNode = recursionTree;data.stackOperations.forEach(operation => {
+            const operationParts = operation.split(': ');
+            const operationType = operationParts[0];
+            const callDesc = operationParts[1];
+
+            if (operationType === '入栈') {
+                // 添加一个新的递归调用节点
+                const newNode = document.createElement('div');
+                newNode.textContent = callDesc;
+                newNode.classList.add('recursion-node');
+                newNode.style.paddingLeft = `${currentDepth * 20}px`; // 根据深度调整缩进
+
+                currentNode.appendChild(newNode);
+                currentNode = newNode;
+                currentDepth++;
+            } else if (operationType === '出栈') {
+                // 从递归树中回退一个节点
+                currentNode = currentNode.parentNode;
+                currentDepth--;
+            }
+        });
+
+        recursionTreeContainer.appendChild(recursionTree);
+    })
+
+    .catch(error => console.error('Error:', error));
+}
+
+//文字闪烁效果
+const text = "东北大学"; // 要显示的文字
+        const textContainer = document.getElementById('text-container');
+        let index = 0;
+
+        function showNextLetter() {
+            if (index < text.length) {
+                textContainer.textContent += text[index];
+                index++;
+                setTimeout(showNextLetter, 200); // 控制字母显示的速度，这里每200毫秒显示一个字母
+            } else {
+                setTimeout(hideLetters, 1000); // 显示完毕后，等待1秒后隐藏字母
+            }
+        }
+
+        function hideLetters() {
+            const textLength = textContainer.textContent.length;
+            if (textLength > 0) {
+                textContainer.textContent = textContainer.textContent.slice(0, textLength - 1);
+                setTimeout(hideLetters, 100); // 控制字母消失的速度，这里每100毫秒消失一个字母
+            } else {
+                index = 0; // 重置索引，以便下一次显示
+                setTimeout(showNextLetter, 1000); // 消失完毕后，等待1秒后重新显示字母
+            }
+        }
+
+        // 开始显示文字
+        showNextLetter();
+</script>
+
+
+</body>
+</html>

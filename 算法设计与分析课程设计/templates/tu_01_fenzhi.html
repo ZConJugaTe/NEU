@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>图灵机仿真系统 - 分支限界法求解01背包问题</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        input[type="text"], input[type="number"], select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #results, #steps, #resultsolve {
+            margin-top: 20px;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        #tapeContainer {
+            display: flex;
+            flex-direction: column;
+        }
+        #tape {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        #tapeContainer {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8e8e8; /* 轻微的灰色背景 */
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #tape {
+            padding: 5px;
+            border: 1px solid #ccc; /* 边框让它更像纸带 */
+            border-radius: 8px;
+            white-space: nowrap;
+            overflow-x: auto; /* 添加横向滚动条 */
+            max-width: 100%; /* 最大宽度设置为父元素的宽度 */
+            position: relative; /* 设置相对定位以便后续绝对定位的使用 */
+        }
+
+        #tape span {
+            display: inline-block;
+            padding: 5px 10px; /* 调整数字单元的内边距 */
+            position: relative; /* 使得每个数字单元相对定位，以便于后续的绝对定位 */
+        }
+
+        #tape span:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px; /* 边框宽度 */
+            height: 100%; /* 高度与内容高度相同 */
+            background-color: #ccc; /* 边框颜色 */
+        }
+
+        .highlight {
+            background-color: #4CAF50; /* Green */
+            color: #ffffff;
+        }
+
+        #text-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 20px;
+            font-family: 'Roboto', sans-serif; /* 设置字体，可以指定多个备选字体 */
+            font-weight:bold;
+            color: #333; /* 设置文字颜色 */
+        }
+
+        #svgContainer {
+            width: 800px;
+            height: 600px;
+            overflow: auto;
+            border: 1px solid #ccc;
+            padding: 10px; /* 添加内边距 */
+        }
+
+        svg {
+            width: auto;
+            height: 1000px;
+        }
+
+        .word {
+            font-size: 1em;
+        }
+
+        #taperesultContainer {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8e8e8; /* 轻微的灰色背景 */
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #taperesult {
+            padding: 5px;
+            border: 1px solid #ccc; /* 边框让它更像纸带 */
+            border-radius: 8px;
+            white-space: nowrap;
+            overflow-x: auto; /* 添加横向滚动条 */
+            max-width: 100%; /* 最大宽度设置为父元素的宽度 */
+            position: relative; /* 设置相对定位以便后续绝对定位的使用 */
+        }
+
+        #taperesult span {
+            display: inline-block;
+            padding: 5px 10px; /* 调整数字单元的内边距 */
+            position: relative; /* 使得每个数字单元相对定位，以便于后续的绝对定位 */
+        }
+
+        #taperesult span:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px; /* 边框宽度 */
+            height: 100%; /* 高度与内容高度相同 */
+            background-color: #ccc; /* 边框颜色 */
+        }
+
+        #tapeIntervalContainer {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8e8e8; /* 轻微的灰色背景 */
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #tapeInterval {
+            padding: 5px;
+            border: 1px solid #ccc; /* 边框让它更像纸带 */
+            border-radius: 8px;
+            white-space: nowrap;
+            overflow-x: auto; /* 添加横向滚动条 */
+            max-width: 100%; /* 最大宽度设置为父元素的宽度 */
+            position: relative; /* 设置相对定位以便后续绝对定位的使用 */
+        }
+
+        #tapeInterval span {
+            display: inline-block;
+            padding: 5px 10px; /* 调整数字单元的内边距 */
+            position: relative; /* 使得每个数字单元相对定位，以便于后续的绝对定位 */
+        }
+
+        #tapeInterval span:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px; /* 边框宽度 */
+            height: 100%; /* 高度与内容高度相同 */
+            background-color: #ccc; /* 边框颜色 */
+        }
+
+        #readWriteHead {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 35px;
+            height: 100%;
+            background-color: rgba(0, 255, 0, 0.5); /* 透明绿色 */
+            pointer-events: none; /* 防止读写头干扰点击事件 */
+            //transition: transform 0.3s ease; /* 平滑移动效果 */
+            transition: left 300ms ease; // 读写头移动的动画
+        }
+
+        span.highlight {
+            transition: opacity 300ms ease; // 数字显示的动画
+        }
+        #tapenumber {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        #pace_number {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="text-container"></div>
+    <div class="container">
+        <h1>01背包问题 - 图灵机模拟 (分支限界法)</h1>
+        <form id="simulationForm">
+            <label for="itemsInput">物品信息 (格式：重量,价值; 重量,价值):</label>
+            <select id="presetItems" onchange="selectPresetItems()">
+                <option value="">选择预设物品组合...</option>
+                <option value="2,30;1,45;3,25;4,26">组合1：物品(2,30), 物品(1,45), 物品(3,25), 物品(4,26)</option>
+                <option value="5,10;10,20;15,30">组合2：物品(5,10), 物品(10,20), 物品(15,30)</option>
+                <option value="20,40;30,60;40,80">组合3：物品(20,40), 物品(30,60), 物品(40,80)</option>
+                <option value="5,12;15,30;25,44;27,46;30,50">测试用</option>"
+            </select>
+            <input type="text" id="itemsInput" placeholder="例如 1,10;2,15;3,20;4,35">
+            <label for="capacityInput">背包容量:</label>
+            <input type="number" id="capacityInput" placeholder="输入背包容量" value="50">
+            <button type="button" onclick="simulate()">模拟</button>
+        </form>
+
+        <h2 class="word">输入纸带</h2>
+        <div id="tapeContainer">
+            <div id="tape"></div>
+        </div>
+        <div id="machineState" class="machineState">当前所处状态:q0</div>
+
+        <h2 class="word">工作纸带</h2>
+        <div id="taperesultContainer">
+            <div id="taperesult">
+            </div>
+        </div>
+
+        <h2 class="word">结果纸带</h2>
+        <div id="tapeIntervalContainer">
+            <div id="tapeInterval"></div>
+        </div>
+
+        <h1 class="word">纸带使用总空间</h1>
+        <div id="tapenumber"></div>
+        <h1 class="word">步数</h1>
+        <div id="pace_number"></div>
+
+        <h2 class="word">求解步骤</h2>
+        <div id="steps"></div>
+
+        <h2 class="word">最终结果</h2>
+        <div id="results"></div>
+
+        <h1 class="word">最优解</h1>
+        <div id="resultsolve"></div>
+
+        <h1 class="word">决策树</h1>
+        <button id="startAnimation">展示生成过程</button>
+        <div id="svgContainer">
+            <svg></svg>
+        </div>
+    </div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        let tapeusage=0;
+        let stepCount = 0; // 步数计数器
+        function selectPresetItems() {
+            const presetSelect = document.getElementById('presetItems');
+            const itemsInput = document.getElementById('itemsInput');
+            itemsInput.value = presetSelect.value; // 设置输入框的内容为选择的预设组合
+        }
+
+        function simulate() {
+            const itemsInput = document.getElementById('itemsInput').value.split(';').map(item => {
+                const parts = item.split(',');
+                return { weight: parseInt(parts[0]), value: parseInt(parts[1]) };
+            });
+            const capacity = parseInt(document.getElementById('capacityInput').value);
+
+            // 传入物品数量、背包容量和物品数组
+            initializeTape(itemsInput.length, capacity, itemsInput);
+
+            fetch('/solve_knapsack', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({items: itemsInput, capacity: capacity})
+            })
+            .then(response => response.json())
+            .then(data => {
+                const steps = data.steps;
+                const optimalSolution = data.optimalSolution;
+                const maxProfit = data.maxProfit;
+
+                animateSteps(steps, itemsInput, capacity, maxProfit, optimalSolution);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('处理请求时发生错误，请稍后再试。');
+            });
+            performKnapsack();
+        }
+
+function animateSteps(steps, items, capacity, maxProfit, optimalSolution) {
+    let stepIndex = 0;
+    stepCount = 0; // 重置步数计数器
+    const stepsDiv = document.getElementById('steps');
+    const resultsDiv = document.getElementById('results');
+    const resultsolveDiv = document.getElementById('resultsolve');
+    const tapeDiv = document.getElementById('tape');
+    const machineState = document.getElementById('machineState');
+    const taperesultDiv = document.getElementById('taperesult');
+    const tapenumber = document.getElementById('tapenumber');
+    const paceNumber = document.getElementById('pace_number'); // 步数显示元素
+
+    stepsDiv.innerHTML = '';
+    taperesultDiv.innerHTML = '';  // 初始化工作纸带内容
+
+    stepsDiv.innerHTML += `<p>状态: q0 开始状态</p>`;
+    stepIndex++;  // 移动到下一个步骤
+    stepCount++; // 增加步数计数
+    // 初始化高亮显示物品数量和背包容量
+    function highlightInitial() {
+        const tapeCells = tapeDiv.querySelectorAll('.tape-cell');
+
+        // 首先高亮显示物品数量
+        tapeCells[0].style.backgroundColor = '#4CAF50';
+        stepsDiv.innerHTML += `<p>状态: q0->q1 读取物品数量</p>`;
+        stepIndex++;  // 移动到下一个步骤
+        stepCount++; // 增加步数计数
+        setTimeout(() => {
+            // 移除物品数量的高亮
+            tapeCells[0].style.backgroundColor = '';
+            stepsDiv.innerHTML += `<p>状态: q1->q2 读取背包容量</p>`;
+            stepIndex++;  // 移动到下一个步骤
+            stepCount++; // 增加步数计数
+            // 然后高亮显示背包容量
+            tapeCells[1].style.backgroundColor = '#4CAF50';
+
+            setTimeout(() => {
+                // 移除背包容量的高亮
+                tapeCells[1].style.backgroundColor = '';
+                stepsDiv.innerHTML += `<p>状态: q2->q3 开始求解问题</p>`;
+                stepIndex++;  // 移动到下一个步骤
+                stepCount++; // 增加步数计数
+                // 开始处理其他步骤
+                processStep();
+            }, 1000);  // 保持背包容量的高亮1秒
+        }, 1000);  // 保持物品数量的高亮1秒
+
+    }
+
+    function processStep() {
+        if (stepIndex < steps.length) {
+            const step = steps[stepIndex];
+            const tapeCells = tapeDiv.querySelectorAll('.tape-cell');
+
+            // 重置所有背景色
+            tapeCells.forEach(cell => cell.style.backgroundColor = '');
+
+            // 逐个物品高亮显示
+            let currentHighlightIndex = 0;
+            function highlightNextItem() {
+                if (currentHighlightIndex < step.contains.length) {
+                    const itemIndex = step.contains[currentHighlightIndex];
+                    const baseIndex = itemIndex * 2 + 2; // 每个物品有两个单元格，一个重量和一个价值
+                    tapeCells[baseIndex].style.backgroundColor = '#4CAF50'; // 高亮显示重量
+                    tapeCells[baseIndex + 1].style.backgroundColor = '#4CAF50'; // 高亮显示价值
+                    currentHighlightIndex++;
+                    setTimeout(highlightNextItem, 500); // 控制每个物品高亮的时间间隔
+                } else {
+                    setTimeout(() => {
+                        tapeCells.forEach(cell => cell.style.backgroundColor = ''); // 消除所有高亮
+                        updateStepInfo(); // 更新步骤信息
+                    }, 500); // 保持最后一个物品高亮显示的时间，然后消除高亮
+                }
+            }
+
+            function updateStepInfo() {
+                const newResultSpan = document.createElement('span');
+                const readWriteHead = document.getElementById('readWriteHead') || createReadWriteHead(taperesultDiv);
+                const existingHighlights = taperesultDiv.querySelectorAll('.highlight');
+                    existingHighlights.forEach(cell => {
+                        cell.classList.remove('highlight');
+                        cell.style.backgroundColor = '';
+                    });
+                    newResultSpan.textContent = step.profit;
+                    styleCell_1(newResultSpan);
+                    newResultSpan.classList.add('highlight');
+                    taperesultDiv.appendChild(newResultSpan);
+                    newResultSpan.style.opacity = '0';
+                    tapeusage++;
+                    tapenumber.innerHTML = `纸带使用总空间:${tapeusage}`;
+                    // 更新读写头的位置
+                    readWriteHead.style.left = `${newResultSpan.offsetLeft}px`;
+
+                setTimeout(() => { // 延迟1秒后更新信息，确保高亮显示已完成
+                    taperesultDiv.scrollLeft = taperesultDiv.scrollWidth - taperesultDiv.clientWidth;
+                    newResultSpan.style.opacity = '1';
+
+                    stepsDiv.innerHTML += `<p>${step.action} 第 ${step.level} 层级: 从状态 ${step.state} 到 ${step.next_state} 转移, 更新价值 ${step.profit}, 物品组合: [${step.contains.map(i => `物品${i}`).join(', ')}]</p>`;
+                    machineState.innerHTML = `<p>当前所处状态: ${step.next_state}</p>`;
+                    stepIndex++;  // 移动到下一个步骤
+                    stepCount++; // 增加步数计数
+                    paceNumber.innerHTML = `步数: ${stepCount}`; // 更新步数显示
+                    setTimeout(processStep, 1000);  // 继续处理下一步
+                }, 1000);
+            }
+
+            highlightNextItem(); // 开始逐个高亮显示
+        } else {
+            resultsDiv.innerHTML = `<p>最大价值: ${maxProfit}</p>`;
+            resultsolveDiv.innerHTML = `<p>最优物品组合: ${optimalSolution.map(i => `物品${i}`).join(', ')}</p>`;
+            updateTapeInterval(optimalSolution, items.length);
+        }
+    }
+
+    highlightInitial(); // 开始处理步骤
+}
+
+
+function updateTapeInterval(optimalSolution, totalItems) {
+    const tapeInterval = document.getElementById('tapeInterval');
+    tapeInterval.innerHTML = ''; // 清空现有内容
+
+    const selectionArray = new Array(totalItems).fill(0);
+    optimalSolution.forEach(index => {
+        selectionArray[index] = 1; // 标记选择的物品，注意确保索引对应
+    });
+
+    // 遍历每个元素，为每个选择创建一个单元格
+    selectionArray.forEach(value => {
+        const cell = document.createElement('span');
+        cell.textContent = value;
+        cell.style.padding = '0 10px';  // 调整内边距以便于阅读
+        cell.style.width = '30px';  // 设置宽度
+        cell.style.height = '30px';  // 设置高度
+        cell.style.display = 'inline-flex';  // 使用flex布局
+        cell.style.alignItems = 'center';  // 垂直居中
+        cell.style.justifyContent = 'center';  // 水平居中
+        cell.style.marginRight = '5px';  // 右侧间隔
+        cell.style.backgroundColor = value === 1 ? '#4CAF50' : '#fff';  // 设置背景色
+        cell.style.color = value === 1 ? '#fff' : '#333';  // 设置文字颜色
+        cell.style.border = '1px solid #ccc';  // 设置边框
+
+        tapeInterval.appendChild(cell); // 将单元格添加到tapeInterval中
+    });
+}
+
+function styleCell_1(cell) {
+    cell.style.padding = '2px 5px';
+    cell.style.margin = '0 2px';
+    cell.style.border = '1px solid #ccc';
+    cell.style.minWidth = '30px';
+    cell.style.textAlign = 'center';
+}
+
+function initializeTape(itemCount, capacity, items) {
+    stepCount=0;
+    const pacenumber=document.getElementById('pace_number');
+    pacenumber.innerHTML='';
+
+    const tape = document.getElementById('tape');
+    tape.innerHTML = '';
+
+    const taperesult = document.getElementById('taperesult');
+    taperesult.innerHTML = '';
+
+    const tapeinterval = document.getElementById('tapeInterval');
+    tapeinterval.innerHTML = '';
+
+    const tapenumber = document.getElementById('tapenumber');
+    tapeusage = 2 + 2 * itemCount;
+    tapenumber.innerHTML = `纸带使用总空间:${tapeusage}`;
+    // 首先添加物品数量和背包容量
+    tape.innerHTML += `
+        <span class="tape-cell weight"
+        style="padding: 0 10px; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; margin-right: 5px; color: #333; border: 1px solid #ccc;">
+            ${itemCount}
+        </span>
+        <span class="tape-cell weight"
+        style="padding: 0 10px; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; margin-right: 5px; color: #333; border: 1px solid #ccc;">
+            ${capacity}
+        </span>`;
+
+    // 然后添加物品的重量和价值
+    tape.innerHTML += items.flatMap(item => [
+        `<span class="tape-cell weight"
+        style="padding: 0 10px; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; margin-right: 5px; color: #333; border: 1px solid #ccc;">${item.weight}</span>`,
+        `<span class="tape-cell value"
+        style="padding: 0 10px; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; margin-right: 5px; color: #333; border: 1px solid #ccc;">${item.value}</span>`
+    ]).join('');
+
+    createReadWriteHead(document.getElementById('taperesult')); // 确保读写头存在
+}
+function createReadWriteHead(tapeResult) {
+    const head = document.createElement('div');
+    head.id = 'readWriteHead';
+    head.style.position = 'absolute';
+    head.style.left = '0'; // 初始化位置在容器的起始处
+    head.style.top = '0';
+    head.style.width = '30px'; // 读写头的宽度
+    head.style.height = '100%'; // 读写头的高度
+    head.style.backgroundColor = '#4CAF50'; // 读写头的颜色，可以根据需要修改
+    head.style.transition = 'left 1s ease'; // 添加平滑过渡动画
+    tapeResult.appendChild(head);
+    return head;
+}
+
+
+
+// 在从服务器获取结果并接收到最优解后调用此函数
+
+
+<!-- 在 HTML 中的 script 标签中 -->
+
+
+
+//文字闪烁效果
+const text = "东北大学"; // 要显示的文字
+        const textContainer = document.getElementById('text-container');
+        let index = 0;
+
+        function showNextLetter() {
+            if (index < text.length) {
+                textContainer.textContent += text[index];
+                index++;
+                setTimeout(showNextLetter, 200); // 控制字母显示的速度，这里每200毫秒显示一个字母
+            } else {
+                setTimeout(hideLetters, 1000); // 显示完毕后，等待1秒后隐藏字母
+            }
+        }
+
+        function hideLetters() {
+            const textLength = textContainer.textContent.length;
+            if (textLength > 0) {
+                textContainer.textContent = textContainer.textContent.slice(0, textLength - 1);
+                setTimeout(hideLetters, 100); // 控制字母消失的速度，这里每100毫秒消失一个字母
+            } else {
+                index = 0; // 重置索引，以便下一次显示
+                setTimeout(showNextLetter, 1000); // 消失完毕后，等待1秒后重新显示字母
+            }
+        }
+
+        // 开始显示文字
+        showNextLetter();
+    </script>
+
+
+    <script>
+
+
+    //let currentIndex = 0;
+
+    /*document.getElementById('startAnimation').addEventListener('click', function() {
+    currentIndex = 0; // 重置当前动画的节点索引
+    animateVisualization(); // 开始动画
+});*/
+    let treeDataGlobal = [];
+    function performKnapsack() {
+    const itemsInput = document.getElementById('itemsInput').value.split(';').map((item, index) => {
+        const [weight, value] = item.split(',');
+        return { weight: parseInt(weight, 10), value: parseInt(value, 10), id: `item${index}` };
+    });
+    itemsInput.sort((a, b) => (b.value / b.weight) - (a.value / a.weight));
+    const capacity = parseInt(document.getElementById('capacityInput').value, 10);
+    const result = branchAndBoundKnapsack(itemsInput, capacity);
+    treeDataGlobal = result.treeData;
+    updateVisualization(treeDataGlobal); // 初次只显示根节点
+}
+
+function animateVisualization() {
+    if (currentIndex < treeDataGlobal.length) {
+        updateVisualization(treeDataGlobal.slice(0, currentIndex + 1));
+        currentIndex++;
+        setTimeout(animateVisualization, 1000); // 每秒更新一次视图
+    }
+}
+
+function branchAndBoundKnapsack(items, capacity) {
+    let maxProfit = 0;
+    let bestItems = [];
+    let treeData = [];
+    let nodeId = 0;
+    let pq = [];
+    let nodeCount = 0;
+
+    function bound(weight, profit, items, level, capacity) {
+        let j = level;
+        let totWeight = weight;
+        let profitBound = profit;
+        while (j < items.length && totWeight + items[j].weight <= capacity) {
+            totWeight += items[j].weight;
+            profitBound += items[j].value;
+            j++;
+        }
+        if (j < items.length) {
+            profitBound += (capacity - totWeight) * (items[j].value / items[j].weight);
+        }
+        return profitBound;
+    }
+
+    pq.push({ level: -1, weight: 0, profit: 0, itemsTaken: [], parent: "root", id: `node${nodeId}`, nodeOrder: nodeCount++, pruned: false });
+    treeData.push({ id: `node${nodeId}`, name: "根节点", parent: null, profit: 0, weight: 0, order: 0, pruned: false });
+
+    while (pq.length > 0) {
+        pq.sort((a, b) => b.bound - a.bound);
+        let node = pq.shift();
+
+        let level = node.level + 1;
+        if (level < items.length) {
+            let includeWeight = node.weight + items[level].weight;
+            let includeProfit = node.profit + items[level].value;
+            let nextId = ++nodeId;
+
+            if (includeWeight <= capacity) {
+                let includeBound = bound(includeWeight, includeProfit, items, level + 1, capacity);
+                if (includeBound > maxProfit) {
+                    let includeNode = { level: level, weight: includeWeight, profit: includeProfit, itemsTaken: node.itemsTaken.concat(`node${nextId}`), parent: node.id, id: `node${nextId}`, bound: includeBound, nodeOrder: nodeCount++, pruned: false };
+                    pq.push(includeNode);
+                    treeData.push({ id: `node${nextId}`, name: `包含物品${level}`, parent: node.id, profit: includeProfit, weight: includeWeight, order: includeNode.nodeOrder, pruned: false });
+                    if (includeProfit > maxProfit) {
+                        maxProfit = includeProfit;
+                        bestItems = includeNode.itemsTaken.slice();
+                    }
+                } else {
+                    treeData.push({ id: `node${nextId}`, name: `剪枝: 包含物品${level} (上界: ${includeBound})`, parent: node.id, profit: includeProfit, weight: includeWeight, order: nodeCount++, pruned: true, pruneReason: '上界小于最大利润' });
+                }
+            } else {
+                treeData.push({ id: `node${nextId}`, name: `剪枝: 包含物品${level} (超出容量)`, parent: node.id, profit: includeProfit, weight: includeWeight, order: nodeCount++, pruned: true, pruneReason: '超出容量' });
+            }
+
+            nextId = ++nodeId;
+            let excludeBound = bound(node.weight, node.profit, items, level + 1, capacity);
+            if (excludeBound > maxProfit) {
+                let excludeNode = { level: level, weight: node.weight, profit: node.profit, itemsTaken: node.itemsTaken, parent: node.id, id: `node${nextId}`, bound: excludeBound, nodeOrder: nodeCount++, pruned: false };
+                pq.push(excludeNode);
+                treeData.push({ id: `node${nextId}`, name: `不包含物品${level}`, parent: node.id, profit: node.profit, weight: node.weight, order: excludeNode.nodeOrder, pruned: false });
+            } else {
+                treeData.push({ id: `node${nextId}`, name: `剪枝: 不包含物品${level} (上界: ${excludeBound})`, parent: node.id, profit: node.profit, weight: node.weight, order: nodeCount++, pruned: true, pruneReason: '上界小于最大利润' });
+            }
+        }
+    }
+
+    return { treeData, maxProfit, bestItems };
+}
+
+function updateVisualization(treeData) {
+    const margin = { top: 50, right: 120, bottom: 50, left: 150 };
+    const width = 960 - margin.right - margin.left;
+    const height = 600 - margin.top - margin.bottom;
+
+    // 清空SVG并重新设置宽高
+    const svg = d3.select("#svgContainer svg").html("")
+        .attr("width", width + margin.right + margin.left)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    const root = d3.stratify()
+        .id(d => d.id)
+        .parentId(d => d.parent)(treeData);
+
+    const treeLayout = d3.tree().size([height, width]);
+    treeLayout(root);
+
+    // 生成路径生成器
+    const linkPathGenerator = d3.linkHorizontal()
+        .x(d => d.y)
+        .y(d => d.x);
+
+    // 绘制连线
+    svg.selectAll(".link")
+        .data(root.links())
+        .enter().append("path")
+        .attr("class", "link")
+        .attr("d", linkPathGenerator)
+        .attr("stroke", "#ccc")
+        .attr("fill", "none")
+        .attr("stroke-opacity", 0); // 初始化时隐藏所有连线
+
+    // 绘制节点
+    const nodes = svg.selectAll(".node")
+        .data(root.descendants())
+        .enter().append("g")
+        .attr("class", "node")
+        .attr("transform", d => `translate(${d.y},${d.x})`);
+
+    nodes.append("circle")
+        .attr("r", 10)
+        .attr("fill", d => d.data.pruned ? "#f00" : "#fff")
+        .attr("stroke", "steelblue")
+        .attr("stroke-opacity", 0)    // 最初设置边框不可见
+        .attr("fill-opacity", d => d.data.id === "root" ? 1 : 0); // 仅根节点初始可见
+
+    nodes.append("text")
+        .attr("dy", ".35em")
+        .attr("x", d => d.children ? -15 : 15)
+        .attr("text-anchor", d => d.children ? "end" : "start")
+        .style("font-size", "10px")
+        .text(d => `#${d.data.order} - ${d.data.name} (价值: ${d.data.profit}, 重量: ${d.data.weight})`)
+        .style("fill", d => d.data.pruned ? "#f00" : "black")
+        .attr("fill-opacity", d => d.data.id === "root" ? 1 : 0); // 仅根节点文本初始可见
+
+    // 动画显示函数
+    function revealElements() {
+    // 重置所有元素的可见性
+    svg.selectAll(".link")
+        .attr("stroke-opacity", 0);
+
+    svg.selectAll(".node circle")
+        .attr("fill-opacity", 0)
+        .attr("stroke-opacity", 0);
+
+    svg.selectAll(".node text")
+        .attr("fill-opacity", 0);
+
+    let delayIncrement = 200; // 每个元素之间的延迟时间
+
+    // 遍历所有连接线，并按目标节点的顺序显示
+    svg.selectAll(".link")
+        .transition()
+        .duration(200)
+        .delay((d) => (d.target.data.order * delayIncrement * 3)) // 使用目标节点的 order 属性计算延迟
+        .attr("stroke-opacity", 1);
+
+    // 遍历所有节点
+    svg.selectAll(".node")
+        .each(function (d) {
+            let node = d3.select(this);
+            let circle = node.select("circle");
+            let text = node.select("text");
+
+            // 显示节点圆圈动画
+            circle.transition()
+                .duration(500)
+                .delay(d.data.order * delayIncrement * 3 + delayIncrement) // 使用节点的 order 属性计算延迟
+                .attr("fill-opacity", 1)
+                .attr("stroke-opacity", 1);
+
+            // 显示文本动画
+            text.transition()
+                .duration(500)
+                .delay(d.data.order * delayIncrement * 3 + delayIncrement * 2) // 使用节点的 order 属性计算延迟
+                .attr("fill-opacity", 1);
+        });
+}
+
+document.getElementById("startAnimation").addEventListener('click', revealElements);
+
+}
+
+
+</script>
+
+</body>
+</html>

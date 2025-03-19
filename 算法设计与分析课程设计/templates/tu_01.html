@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>图灵机仿真系统 - 动态规划求解01背包问题</title>
+    <style>
+        #headPosition {
+            position: relative;
+            transition: transform 0.5s ease; /* 平滑过渡动画 */
+        }
+        #tapeContainer {
+            display: flex;
+            flex-direction: column;
+        }
+        #tape {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        .highlight {
+            color: red; /* 或者您喜欢的任何颜色 */
+            font-weight: bold;
+        }
+        .tape-highlight {
+            background-color: yellow;  /* 明显的高亮颜色 */
+            color: black;  /* 文字颜色 */
+            font-weight: bold;  /* 加粗显示 */
+        }
+
+
+        th, td {
+            padding: 5px;
+            text-align: center;
+        }
+        .step {
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 5px;
+        }
+        .step {
+            font-family: Arial, sans-serif; /* 设置字体 */
+            color: #333; /* 设置文字颜色 */
+        }
+
+    </style>
+    <style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 800px; /* 设置一个最大宽度 */
+        margin: 0 auto; /* 水平居中 */
+        background-color: #fff; /* 容器背景色 */
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1); /* 增加阴影效果 */
+        padding: 20px; /* 内边距 */
+        border-radius: 8px; /* 圆角边框 */
+    }
+
+    input[type="text"], input[type="number"] {
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        width: 100%; /* 输入框填满容器宽度 */
+    }
+
+    button {
+        background-color: #007BFF;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    #tapeContainer {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #e8e8e8; /* 轻微的灰色背景 */
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    #tape {
+        padding: 5px;
+        border: 1px solid #ccc; /* 边框让它更像纸带 */
+        border-radius: 8px;
+        white-space: nowrap;
+        overflow-x: auto; /* 添加横向滚动条 */
+        max-width: 100%; /* 最大宽度设置为父元素的宽度 */
+        position: relative; /* 设置相对定位以便后续绝对定位的使用 */
+    }
+
+    #tape span {
+        display: inline-block;
+        padding: 5px 10px; /* 调整数字单元的内边距 */
+        position: relative; /* 使得每个数字单元相对定位，以便于后续的绝对定位 */
+    }
+
+    #tape span:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 1px; /* 边框宽度 */
+        height: 100%; /* 高度与内容高度相同 */
+        background-color: #ccc; /* 边框颜色 */
+    }
+
+    #tapeIntervalContainer {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #e8e8e8; /* 轻微的灰色背景 */
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    #tapeInterval {
+        padding: 5px;
+        border: 1px solid #ccc; /* 边框让它更像纸带 */
+        border-radius: 8px;
+        white-space: nowrap;
+        overflow-x: auto; /* 添加横向滚动条 */
+        max-width: 100%; /* 最大宽度设置为父元素的宽度 */
+        position: relative; /* 设置相对定位以便后续绝对定位的使用 */
+    }
+
+    #tapeInterval span {
+        display: inline-block;
+        padding: 5px 10px; /* 调整数字单元的内边距 */
+        position: relative; /* 使得每个数字单元相对定位，以便于后续的绝对定位 */
+    }
+
+    #tapeInterval span:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 1px; /* 边框宽度 */
+        height: 100%; /* 高度与内容高度相同 */
+        background-color: #ccc; /* 边框颜色 */
+    }
+
+    table {
+        width: 100%;
+        margin-top: 20px; /* 表格上方留出一些空间 */
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f8f9fa;
+    }
+
+    .step, #results,#resultsolve,#tapenumber,#pace_number {
+        background-color: #fff;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        margin-top: 20px;
+    }
+
+
+    .highlight {
+        background-color: #ff0; /* 黄色高亮 */
+        color: #000; /* 文字颜色黑色 */
+    }
+
+    .tape-highlight {
+        background-color: #4CAF50; /* 绿色高亮 */
+        color: #fff; /* 文字颜色白色 */
+    }
+    .tape-highlight_1 {
+        background-color: #ffff00; /* 黄色高亮 */
+        color: #fff; /* 文字颜色白色 */
+    }
+
+    #text-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 20px;
+            font-family: 'Roboto', sans-serif; /* 设置字体，可以指定多个备选字体 */
+            font-weight:bold;
+            color: #333; /* 设置文字颜色 */
+        }
+
+    .word{
+        font-size: 1em;
+    }
+
+    .importantStep {
+        color: #D2691E;
+        font-size: 16px;
+        font-weight: bold;
+        background-color: #f0e9d2;
+        padding: 5px;
+        margin-bottom: 5px;
+    }
+    .word {
+            font-size: 1em;
+    }
+
+    #taperesultContainer {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #e8e8e8; /* 轻微的灰色背景 */
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    #taperesult {
+        padding: 5px;
+        border: 1px solid #ccc; /* 边框让它更像纸带 */
+        border-radius: 8px;
+        white-space: nowrap;
+        overflow-x: auto; /* 添加横向滚动条 */
+        max-width: 100%; /* 最大宽度设置为父元素的宽度 */
+        position: relative; /* 设置相对定位以便后续绝对定位的使用 */
+    }
+
+    #taperesult span {
+        display: inline-block;
+        padding: 5px 10px; /* 调整数字单元的内边距 */
+        position: relative; /* 使得每个数字单元相对定位，以便于后续的绝对定位 */
+    }
+
+    #taperesult span:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 1px; /* 边框宽度 */
+        height: 100%; /* 高度与内容高度相同 */
+        background-color: #ccc; /* 边框颜色 */
+    }
+
+    #readWriteHead, #readWriteHead_1 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 35px;
+        height: 100%;
+        background-color: rgba(0, 255, 0, 0.5); /* 透明绿色 */
+        pointer-events: none; /* 防止读写头干扰点击事件 */
+        //transition: transform 0.3s ease; /* 平滑移动效果 */
+        transition: left 300ms ease; // 读写头移动的动画
+    }
+    span.highlight {
+        transition: opacity 300ms ease; // 数字显示的动画
+    }
+
+    #tu_qk{
+        font-size: 1em;
+        font-family: 'Roboto', sans-serif; /* 设置字体，可以指定多个备选字体 */
+        font-weight:bold;
+        color: #333; /* 设置文字颜色 */
+    }
+    #pace_number{
+
+    }
+</style>
+
+
+</head>
+<body>
+    <div id="text-container"></div>
+
+    <div class="container">
+    <h1>01背包问题 - 动态规划方法 - 图灵机模拟</h1>
+    <form id="simulationForm">
+        <label for="presetItems">选择预设物品组合:</label>
+        <select id="presetItems">
+            <option value="">--选择或自定义--</option>
+            <!-- JavaScript将填充这里的选项 -->
+        </select>
+        <br><br>
+        <label for="itemsInput">或自定义物品信息 (格式：重量,价值; 重量,价值):</label>
+        <input type="text" id="itemsInput" placeholder="例如 1,10;2,15;3,20;4,35">
+        <br><br>
+        <label for="capacityInput">背包容量:</label>
+        <input type="number" id="capacityInput" placeholder="输入背包容量" value="50">
+        <br><br>
+        <button type="button" onclick="simulate()">模拟</button>
+    </form>
+    <h2 class="word">每个数字代表每个物体重量</h2>
+    <h1 class="word">输入纸带</h1><div id="tu_qk">当前情况:未开始</div>
+    <div id="tapeContainer">
+        <div id="tape"></div>
+    </div>
+
+     <h1 class="word">工作纸带</h1>
+     <div id="taperesultContainer">
+         <div id="taperesult">
+         </div>
+     </div>
+
+    <h1 class="word">结果纸带</h1>
+    <div id="tapeIntervalContainer">
+        <div id="tapeInterval"></div>
+    </div>
+
+    <h1 class="word">dp数组动态展示表</h1>
+    <div style="overflow-x: auto; width: 100%;">
+        <table id="dpTable"></table>
+    </div>
+
+    <h1 class="word">纸带使用总空间</h1>
+    <div id="tapenumber"></div>
+    <h1 class="word">步数</h1>
+    <div id="pace_number">步数</div>
+
+    <h1 class="word">结果</h1>
+    <div id="results"></div>
+
+    <h1 class="word">最优解</h1>
+    <div id="resultsolve"></div>
+
+    <h1 class="word">步骤演示</h1>
+    <div id="steps" class="step"></div>
+</div>
+
+
+</body>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+        const presets = {
+            "Example 1": "1,10;2,15;3,20;4,35",
+            "Example 2": "2,20;3,30;4,40;5,50",
+            "Example 3": "1,5;2,10;3,15;1,10;2,20",
+            "测试用":"5,12;15,30;25,44;27,46;30,50"
+        };
+
+    const presetSelect = document.getElementById('presetItems');
+    const itemsInput = document.getElementById('itemsInput');
+
+    for (const [name, data] of Object.entries(presets)) {
+        let option = document.createElement('option');
+        option.value = data;
+        option.textContent = name;
+        presetSelect.appendChild(option);
+    }
+
+    presetSelect.addEventListener('change', function() {
+        itemsInput.value = this.value || '';
+    });
+});
+
+    let tapeusenumber=0;
+    let pace_number=0;
+    function initializeTape(items, capacity) {
+        const stepsElement = document.getElementById('steps');
+        stepsElement.innerHTML = '';
+        const tape = document.getElementById('tape');
+        tape.innerHTML = '';  // 清空现有的纸带内容
+        const taperesult = document.getElementById('taperesult');
+        taperesult.innerHTML = '';  // 清空现有的纸带内容
+        const tapeInterval = document.getElementById('tapeInterval');
+        tapeInterval.innerHTML = '';  // 清空现有的纸带内容
+
+        const tu_qk = document.getElementById('tu_qk');
+
+        pace_number=0;
+
+        // 物品总数占位符
+        const itemsCountPlaceholder = document.createElement('span');
+        itemsCountPlaceholder.textContent = items.length;
+        itemsCountPlaceholder.id = `items-count-cell`;  // 唯一ID，例如使用固定前缀或后缀
+        styleCell(itemsCountPlaceholder);  // 应用单元格样式
+        tape.appendChild(itemsCountPlaceholder);
+
+        // 背包容量占位符
+        const capacityPlaceholder = document.createElement('span');
+        capacityPlaceholder.textContent = capacity;
+        capacityPlaceholder.id = `capacity-cell`;  // 唯一ID，例如使用固定前缀或后缀
+        styleCell(capacityPlaceholder);  // 应用单元格样式
+        tape.appendChild(capacityPlaceholder);
+
+
+        items.forEach((item, index) => {
+            // 创建显示重量的单元格
+            const weightCell = document.createElement('span');
+            weightCell.textContent = item.weight;
+            styleCell(weightCell);  // 应用样式
+            weightCell.id = `weight-cell-${index}`;  // 为每个重量单元设置ID
+            tape.appendChild(weightCell);
+
+            // 创建显示价值的单元格
+            const valueCell = document.createElement('span');
+            valueCell.textContent = item.value;
+            styleCell(valueCell);  // 应用样式
+            tape.appendChild(valueCell);
+        });
+
+        createReadWriteHead(document.getElementById('taperesult')); // 确保读写头存在
+        tapeusenumber=2 + 2*items.length;
+
+        tu_qk.innerHTML = `当前状态:q0`;
+        // 更新步骤显示信息
+        const stepMessage = `状态:q0`;
+        stepsElement.innerHTML += stepMessage + "<br>";
+        // 依次高亮显示物品数量和背包容量，间隔1秒
+        setTimeout(() => {
+            tu_qk.innerHTML = `当前状态:q1`;
+
+            const stepMessage = `状态:q0->q1 读取物体数量`;
+            stepsElement.innerHTML += stepMessage + "<br>";
+
+            itemsCountPlaceholder.classList.add('tape-highlight');
+        }, 1000);
+
+        setTimeout(() => {
+             tu_qk.innerHTML = `当前状态:q2`;
+             const stepMessage = `状态:q1->q2 读取背包容量`;
+             stepsElement.innerHTML += stepMessage + "<br>";
+             capacityPlaceholder.classList.add('tape-highlight');
+        }, 2000);
+        pace_number+=2;
+    }
+
+    function styleCell(cell) {
+        cell.style.padding = '0 10px';  // 设置适当的内边距以便于阅读
+        cell.style.width = '30px';  // 设置宽度
+        cell.style.height = '30px';  // 设置高度
+        cell.style.display = 'inline-flex';  // 使用flex布局
+        cell.style.alignItems = 'center';  // 垂直居中
+        cell.style.justifyContent = 'center';  // 水平居中
+        cell.style.marginRight = '5px';  // 右侧间隔
+        cell.style.color = '#333';  // 设置文字颜色为深色
+        cell.style.border = '1px solid #ccc';  // 设置边框颜色
+    }
+
+
+    function simulate() {
+    const items = document.getElementById('itemsInput').value.split(';').map(item => {
+        const parts = item.split(',');
+        return { weight: parseInt(parts[0]), value: parseInt(parts[1]) };
+    });
+    const capacity = parseInt(document.getElementById('capacityInput').value);
+    initializeTape(items, capacity);
+
+    const dp = Array.from({ length: items.length + 1 }, () =>
+        new Array(capacity + 1).fill(null).map(() => ({ value: 0, items: [] }))
+    );
+
+    const dpTable = document.getElementById('dpTable');
+    const stepsElement = document.getElementById('steps');
+    stepsElement.innerHTML = '';
+    dpTable.innerHTML = '';
+
+    let header = '<tr><th>Item / Capacity</th>';
+    for (let j = 0; j <= capacity; j++) {
+        header += `<th>${j}</th>`;
+    }
+    header += '</tr>';
+    dpTable.innerHTML += header;
+
+    for (let i = 0; i <= items.length; i++) {
+        let row = `<tr><td>${i === 0 ? 'No item' : 'Item ' + i + ' (W=' + items[i - 1].weight + ', V=' + items[i - 1].value + ')'}</td>`;
+        for (let j = 0; j <= capacity; j++) {
+            row += `<td id='cell-${i}-${j}'>${dp[i][j].value}</td>`;
+        }
+        row += '</tr>';
+        dpTable.innerHTML += row;
+    }
+
+    // 确保初始化完毕后，再开始动态规划的模拟计算
+    setTimeout(() => {
+        let delay = 0;
+        const delayIncrement = 100; // 减少延迟以更快看到变化
+        const tu_qk = document.getElementById('tu_qk');
+        tu_qk.innerHTML = `当前状态: q3`;
+        const stepMessage = `状态: q2 -> q3 开始动态规划求解 0/1 背包`;
+        stepsElement.innerHTML += stepMessage + "<br>";
+
+        for (let i = 1; i <= items.length; i++) {
+            for (let j = 0; j <= capacity; j++) {
+                setTimeout(() => {
+                    // 更新步骤显示信息
+                    tu_qk.innerHTML = `当前状态: q4`;
+                    const stepMessage_1 = `状态: q3 -> q4, 容量 ${j}: dp数组 更新值 ${dp[i][j].value} 物品组合: ${dp[i][j].items.map(it => `(${it.weight},${it.value})`).join(', ')}`;
+                    stepsElement.innerHTML += stepMessage_1 + "<br>";
+                    pace_number++;
+
+                    setTimeout(() => {
+                        tu_qk.innerHTML = `当前状态: q5`;
+                        const stepMessage_2 = `状态: q4 -> q5 将更新值写入 dp 表`;
+                        stepsElement.innerHTML += stepMessage_2 + "<br>";
+                        updateTuringMachineState(i, j, dp, items, stepsElement);
+
+                        setTimeout(() => {
+                            tu_qk.innerHTML = `当前状态: q6`;
+                            const stepMessage_3 = `状态: q5 -> q6 将更新值写入工作纸带`;
+                            pace_number++;
+                            stepsElement.innerHTML += stepMessage_3 + "<br>";
+                            tapeusenumber++;
+                            const tapeuse_num = document.getElementById('tapenumber');
+                            tapeuse_num.innerHTML = `使用空间:${tapeusenumber + items.length}`;
+                            writeToWorkTape(dp[i][j].value);  // 在工作纸带上写入
+
+                            setTimeout(() => {
+                                tu_qk.innerHTML = `当前状态: q3`;
+                                const stepMessage_4 = `状态: q6 -> q3 处理 dp 数组的下一个值`;
+                                pace_number++;
+                                stepsElement.innerHTML += stepMessage_4 + "<br>";
+                            }, delayIncrement);
+                        }, delayIncrement);
+                    }, delayIncrement);
+                }, delay);
+                delay += 4*delayIncrement;
+            }
+        }
+
+        setTimeout(() => {
+            const stepMessage_1 = `状态: q3 -> q7, dp数组求解结束，开始回溯得到最优解`;
+            tu_qk.innerHTML = `当前状态:q7`;
+            stepsElement.innerHTML += stepMessage_1 + "<br>";
+            setTimeout(()=> {
+                tu_qk.innerHTML = `当前状态:q8`;
+                const stepMessage_2 = `状态: q7 -> q8, 将最优解写入结果纸带`;
+                stepsElement.innerHTML += stepMessage_2 + "<br>";
+
+                const resultsElement = document.getElementById('results');
+                const resultsSolveElement = document.getElementById('resultsolve');
+                const pacenumber = document.getElementById('pace_number');
+                pacenumber.innerHTML = pace_number;
+                resultsElement.innerHTML = `<span class="importantStep">最大价值: ${dp[items.length][capacity].value}</span>`;
+                resultsSolveElement.innerHTML = `<span class="importantStep">最优解包含的物品: ${dp[items.length][capacity].items.map(item => `重量${item.weight}, 价值${item.value}`).join('; ')}</span>`;
+                updatetapeInterval(dp, items, capacity);
+            },500)
+        }, delay);
+
+        // 移除所有高亮效果
+        setTimeout(() => {
+            tu_qk.innerHTML = `当前状态:q9`;
+            const stepMessage_1 = `状态: q8 -> q9, 问题求解结束`;
+            stepsElement.innerHTML += stepMessage_1 + "<br>";
+
+            document.querySelectorAll('.tape-highlight').forEach(e => e.classList.remove('tape-highlight'));
+            document.querySelectorAll('.tape-highlight_1').forEach(e => e.classList.remove('tape-highlight_1'));
+            document.querySelectorAll('.highlight').forEach(e => e.classList.remove('highlight'));
+        }, delay + 1000); // 确保在所有动作完成后再移除高亮效果
+    }, 3000); // 等待物品数量和背包容量的高亮显示完成，再等1秒开始模拟计算
+}
+
+
+// 更新 Turing Machine 状态的函数调整，只更新重量的状态和高亮
+function updateTuringMachineState(i, j, dp, items, stepsElement) {
+    const item = items[i - 1];
+    let oldValue = dp[i][j];
+    let noNewItemValue = dp[i - 1][j].value;
+    let withNewItemValue = j >= item.weight ? dp[i - 1][j - item.weight].value + item.value : 0;
+
+    // 移除所有高亮效果
+    document.querySelectorAll('.highlight').forEach(cell => {
+        cell.classList.remove('highlight');
+    });
+
+    // 更新dp值
+    if (withNewItemValue > noNewItemValue) {
+        dp[i][j].value = withNewItemValue;
+        dp[i][j].items = [...dp[i - 1][j - item.weight].items, item];
+    } else {
+        dp[i][j].value = noNewItemValue;
+        dp[i][j].items = [...dp[i - 1][j].items];
+    }
+
+    // 更新DP表单元格
+    const cell = document.getElementById(`cell-${i}-${j}`);
+    if (cell) {
+        cell.textContent = dp[i][j].value;  // Update the value in the cell
+        cell.classList.add('highlight'); // Add highlight class to the DP cell
+    }
+
+    // 只高亮重量单元格
+    document.querySelectorAll('.tape-highlight').forEach(e => e.classList.remove('tape-highlight'));
+    document.querySelectorAll('.tape-highlight_1').forEach(e => e.classList.remove('tape-highlight_1'));
+    const tapeCell = document.getElementById(`weight-cell-${i-1}`);
+    if (tapeCell) {
+        tapeCell.classList.add('tape-highlight');
+        pace_number++;
+
+        // 依次高亮显示该组合中的物品重量
+        let delay = 0;
+        const delayIncrement = 500; // 每个物品重量单元格高亮间隔500毫秒
+
+        dp[i][j].items.forEach((item, index) => {
+            setTimeout(() => {
+                const weightCell = document.getElementById(`weight-cell-${items.indexOf(item)}`);
+                if (weightCell) {
+                    weightCell.classList.add('tape-highlight_1');
+                    pace_number++;
+                }
+            }, delay);
+            delay += delayIncrement;
+        });
+    }
+
+}
+
+function updatetapeInterval(dp, items, capacity) {
+    const tapeInterval = document.getElementById('tapeInterval');
+    tapeInterval.innerHTML = '';  // 清空现有的纸带内容
+    const readWriteHead_1 = document.getElementById('readWriteHead_1') || createReadWriteHead(tapeInterval);
+
+    const solution = dp[items.length][capacity]; // 获取解决方案对象
+    const selectedItems = solution.items;
+    const selection = new Array(items.length).fill(0);
+
+    selectedItems.forEach(item => {
+        const index = items.findIndex(it => it === item);
+        if (index !== -1) {
+            selection[index] = 1;
+        }
+    });
+
+    selection.forEach((value, idx) => {
+        const cell = document.createElement('span');
+        cell.textContent = value;
+        cell.style.padding = '0 10px';  // 调整内边距以便于阅读
+        cell.style.width = '30px';  // 设置宽度
+        cell.style.height = '30px';  // 设置高度
+        cell.style.display = 'inline-flex';  // 使用flex布局
+        cell.style.alignItems = 'center';  // 垂直居中
+        cell.style.justifyContent = 'center';  // 水平居中
+        cell.style.marginRight = '5px';  // 右侧间隔
+        cell.style.backgroundColor = value === 1 ? '#4CAF50' : '#fff';  // 设置背景色
+        cell.style.color = value === 1 ? '#fff' : '#333';  // 设置文字颜色
+        cell.style.border = '1px solid #ccc';  // 设置边框
+        cell.style.opacity = '0'; // 初始设置为透明
+
+        tapeInterval.appendChild(cell);
+    });
+    let currentIndex = 0; // 当前展示的单元格索引
+
+    function moveReadWriteHead() {
+        if (currentIndex <= selection.length) {
+            const cell = tapeInterval.children[currentIndex];
+            readWriteHead_1.style.left = `${cell.offsetLeft + cell.clientWidth / 2 - readWriteHead_1.clientWidth / 2}px`;
+            cell.style.opacity = '1'; // 使单元格可见
+
+            currentIndex++;
+            setTimeout(moveReadWriteHead, 500); // 设置下一个元素的显示时间间隔
+        }
+    }
+
+    moveReadWriteHead(); // 启动移动读写头和显示单元格
+}
+
+
+function writeToWorkTape(value) {
+    const tapeResult = document.getElementById('taperesult');
+    const readWriteHead = document.getElementById('readWriteHead') || createReadWriteHead(tapeResult);
+
+    // 移除现有的所有高亮并重置背景色
+    const existingHighlights = tapeResult.querySelectorAll('.highlight');
+    existingHighlights.forEach(cell => {
+        cell.classList.remove('highlight');
+        cell.style.backgroundColor = ''; // 确保背景色被移除
+    });
+
+    // 创建新元素并应用高亮
+    const cell = document.createElement('span');
+    cell.textContent = value;
+    styleCell_1(cell); // 应用基本样式
+    cell.classList.add('highlight'); // 添加高亮类
+    cell.style.opacity = '0'; // 初始设置为不可见
+    tapeResult.appendChild(cell);
+
+    // 更新读写头的位置
+    readWriteHead.style.left = `${cell.offsetLeft}px`;
+    // 更新滚动位置以确保新元素可见
+    setTimeout(() => {
+        tapeResult.scrollLeft = tapeResult.scrollWidth - tapeResult.clientWidth;
+        cell.style.opacity = '1'; // 使新元素可见
+    }, 300);
+}
+function createReadWriteHead(tapeResult) {
+    const head = document.createElement('div');
+    head.id = 'readWriteHead';
+    head.style.position = 'absolute';
+    head.style.left = '0'; // 初始化位置在容器的起始处
+    head.style.top = '0';
+    head.style.width = '30px'; // 读写头的宽度
+    head.style.height = '100%'; // 读写头的高度
+    head.style.backgroundColor = '#4CAF50'; // 读写头的颜色，可以根据需要修改
+    head.style.transition = 'left 0.3s ease'; // 添加平滑过渡动画
+    tapeResult.appendChild(head);
+    return head;
+}
+function styleCell_1(cell) {
+    cell.style.padding = '2px 5px';
+    cell.style.margin = '0 2px';
+    cell.style.border = '1px solid #ccc';
+    cell.style.minWidth = '30px';
+    cell.style.textAlign = 'center';
+}
+
+
+
+
+
+//文字闪烁效果
+const text = "东北大学"; // 要显示的文字
+        const textContainer = document.getElementById('text-container');
+        let index = 0;
+
+        function showNextLetter() {
+            if (index < text.length) {
+                textContainer.textContent += text[index];
+                index++;
+                setTimeout(showNextLetter, 200); // 控制字母显示的速度，这里每200毫秒显示一个字母
+            } else {
+                setTimeout(hideLetters, 1000); // 显示完毕后，等待1秒后隐藏字母
+            }
+        }
+
+        function hideLetters() {
+            const textLength = textContainer.textContent.length;
+            if (textLength > 0) {
+                textContainer.textContent = textContainer.textContent.slice(0, textLength - 1);
+                setTimeout(hideLetters, 100); // 控制字母消失的速度，这里每100毫秒消失一个字母
+            } else {
+                index = 0; // 重置索引，以便下一次显示
+                setTimeout(showNextLetter, 1000); // 消失完毕后，等待1秒后重新显示字母
+            }
+        }
+
+        // 开始显示文字
+        showNextLetter();
+</script>
+
+</body>
+</html>
