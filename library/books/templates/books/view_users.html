@@ -1,0 +1,54 @@
+<!-- books/templates/books/view_users.html -->
+{% extends 'books/base.html' %}
+
+{% block title %}查看用户信息{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h3>用户信息</h3>
+
+    <!-- 搜索表单 -->
+    <form method="get" class="mb-3">
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="username" placeholder="按用户名搜索" value="{{ request.GET.username }}">
+            </div>
+            <div class="col-md-4">
+                <input type="email" class="form-control" name="email" placeholder="按邮箱搜索" value="{{ request.GET.email }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">搜索</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- 用户列表 -->
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>账号ID</th>
+                <th>用户名</th>
+                <th>邮箱</th>
+                <th>操作</th> <!-- 新增操作列 -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.0 }}</td>  <!-- 显示 id -->
+                <td>{{ user.1 }}</td>  <!-- 显示 username -->
+                <td>{{ user.2 }}</td>  <!-- 显示 email -->
+                <td>
+                    <!-- 修改密码按钮 -->
+                    <a href="{% url 'change_password' user.0 %}" class="btn btn-warning btn-sm">修改密码</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">没有找到符合条件的用户。</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

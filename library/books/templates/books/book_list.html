@@ -1,0 +1,105 @@
+{% extends 'books/base.html' %}
+
+{% block title %}书籍列表{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="card-title">书籍列表</h3>
+            <div>
+                <a href="{% url 'book_create' %}" class="btn btn-success btn-sm">添加书籍</a>
+                <a href="{% url 'book_batch_create' %}" class="btn btn-info btn-sm">批量导入书籍</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <form method="get" class="mb-3">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>标题</th>
+                            <th>作者</th>
+                            <th>出版日期</th>
+                            <th>ISBN</th>
+                        </tr>
+                        <tr>
+                            <th>
+                                <input type="text" class="form-control form-control-sm" name="title" placeholder="搜索标题"
+                                    value="{{ request.GET.title }}">
+                            </th>
+                            <th>
+                                <input type="text" class="form-control form-control-sm" name="author" placeholder="搜索作者"
+                                    value="{{ request.GET.author }}">
+                            </th>
+                            <th>
+                                <input type="text" class="form-control form-control-sm" name="published_date"
+                                    placeholder="搜索日期" value="{{ request.GET.published_date }}">
+                            </th>
+                            <th>
+                                <input type="text" class="form-control form-control-sm" name="isbn"
+                                    placeholder="搜索 ISBN" value="{{ request.GET.isbn }}">
+                            </th>
+                            <th colspan="2">
+                                <button type="submit" class="btn btn-sm btn-primary w-100">搜索</button>
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+            </form>
+
+            <!-- 显示搜索到的书籍数量 -->
+            <div class="mb-3">
+                <strong>搜索到的书籍数量：</strong> 总共 {{ book_count }} 本，目前借出 {{book_borrowed_count}} 本，
+                库存 {{book_save_count}} 本
+            </div>
+
+            <!-- 可滚动书籍列表 -->
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto; border: 1px solid #dee2e6;">
+                <table class="table table-bordered table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>标题</th>
+                            <th>作者</th>
+                            <th>出版日期</th>
+                            <th>ISBN</th>
+                            <th>借阅状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for book in books %}
+                        <tr>
+                            <td>{{ book.title }}</td>
+                            <td>{{ book.author }}</td>
+                            <td>{{ book.published_date }}</td>
+                            <td>{{ book.isbn }}</td>
+                            <td>
+                                {% if book.is_borrowed %}
+                                <span class="badge badge-danger">已借出</span>
+                                {% else %}
+                                <span class="badge badge-success">可借</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'book_detail' pk=book.id %}" class="btn btn-info btn-sm">查看</a>
+                                {% if request.user.is_staff %}
+                                <a href="{% url 'book_edit' pk=book.id %}" class="btn btn-warning btn-sm">编辑</a>
+                                <a href="{% url 'book_delete' pk=book.id %}" class="btn btn-danger btn-sm">删除</a>
+                                {% endif %}
+                                {% if not book.is_borrowed %}
+                                <a href="{% url 'loan_create' book_id=book.id %}" class="btn btn-primary btn-sm">借书</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">没有找到符合条件的书籍。</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+<!-- books/templates/books/loan_form.html -->
+{% extends 'books/base.html' %}
+
+{% block title %}借书{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">借书：{{ book.title }}</h3>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">借阅</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

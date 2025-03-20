@@ -1,0 +1,153 @@
+{% extends 'books/base.html' %}
+
+{% block title %}已借书籍{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 已借书籍表格 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="card-title">已借书籍</h3>
+        </div>
+        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+            <!-- 搜索表单 -->
+            <form method="get" class="mb-3">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>书名</th>
+                            <th>作者</th>
+                            <th>借阅日期</th>
+                            <th>归还日期</th>
+                        </tr>
+                        <tr>
+                            <th>
+                                <input type="text" class="form-control form-control-sm" name="title" placeholder="按书名搜索" value="{{ title_query }}">
+                            </th>
+                            <th>
+                                <input type="text" class="form-control form-control-sm" name="author" placeholder="按作者搜索" value="{{ author_query }}">
+                            </th>
+                            <th>
+                                <input type="date" class="form-control form-control-sm" name="loan_date" placeholder="按借阅日期搜索" value="{{ loan_date_query }}">
+                            </th>
+                            <th>
+                                <input type="date" class="form-control form-control-sm" name="return_date" placeholder="按归还日期搜索" value="{{ loan_date_query }}">
+                            </th>
+                            <th>
+                                <button type="submit" class="btn btn-sm btn-primary w-100">搜索</button>
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+            </form>
+
+            <!-- 表格内容 -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>书名</th>
+                            <th>作者</th>
+                            <th>借阅日期</th>
+                            <th>归还日期</th>
+                            <th>借阅者邮箱</th> <!-- 显示借阅者邮箱 -->
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loan in loans %}
+                        <tr>
+                            <td>{{ loan.title }}</td>
+                            <td>{{ loan.author }}</td>
+                            <td>{{ loan.loan_date }}</td>
+                            <td>
+                                {% if loan.returned %}
+                                    {{ loan.return_date|date:"Y-m-d" }}  <!-- 显示归还日期 -->
+                                {% else %}
+                                    <span class="badge badge-warning">未归还</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ loan.user_email }}</td> <!-- 显示借阅者邮箱 -->
+                            <td>
+                                {% if not loan.returned %}
+                                    <a href="{% url 'return_book' loan_id=loan.id %}" class="btn btn-danger btn-sm">还书</a>
+                                {% else %}
+                                    <span class="badge badge-success">已归还</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">没有符合条件的借阅记录。</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>                    
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3D 柱状图 -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">每月借书统计</h3>
+        </div>
+        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+            <div id="monthlyLoansChart" style="height: 300px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Plotly.js -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    // 每月借书数据
+    const monthlyLoans = JSON.parse('{{ monthly_loans|safe }}');
+
+    // 构造 3D 柱状图数据
+    const data = [{
+        type: 'bar',
+        x: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        y: monthlyLoans,
+        z: Array(12).fill(0), // Z轴位置保持为0，用来创建 3D 效果
+        opacity: 0.7,
+        marker: {
+            color: 'rgb(58,71,80)',
+            line: {
+                color: 'rgb(8,48,107)',
+                width: 1.5
+            }
+        },
+        name: '借书数量'
+    }];
+
+    // 3D 图表布局
+    const layout = {
+        title: '当年每月借书统计',
+        scene: {
+            xaxis: { title: '月份' },
+            yaxis: { title: '借书数量' },
+            zaxis: { title: 'Z轴' },
+        },
+        barmode: 'stack',
+        height: 300,
+        showlegend: false
+    };
+
+    // 创建 3D 柱状图
+    Plotly.newPlot('monthlyLoansChart', data, layout);
+
+    // 动态效果：使用 setTimeout 来模拟图表逐步呈现
+    let opacity = 0;
+    let interval = setInterval(() => {
+        if (opacity < 1) {
+            opacity += 0.05;
+            Plotly.update('monthlyLoansChart', {
+                marker: { opacity: opacity }
+            });
+        } else {
+            clearInterval(interval);
+        }
+    }, 50);
+</script>
+{% endblock %}

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - 图书管理系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* 复用登录页面的样式 */
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            overflow: hidden;
+        }
+
+        .background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .background span {
+            position: absolute;
+            display: block;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            animation: move 10s linear infinite, colorChange 6s linear infinite;
+            border-radius: 50%;
+        }
+
+        /* 动态效果同登录页面 */
+        @keyframes move {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+            }
+        }
+
+        @keyframes colorChange {
+            0% {
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+            25% {
+                background-color: rgba(255, 0, 0, 0.2);
+            }
+            50% {
+                background-color: rgba(0, 255, 0, 0.2);
+            }
+            75% {
+                background-color: rgba(0, 0, 255, 0.2);
+            }
+            100% {
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        .background span:nth-child(1) {
+            left: 20%;
+            animation-delay: 0s;
+            animation-duration: 10s;
+            width: 50px;
+            height: 50px;
+        }
+        .background span:nth-child(2) {
+            left: 40%;
+            animation-delay: 2s;
+            animation-duration: 12s;
+            width: 60px;
+            height: 60px;
+        }
+        .background span:nth-child(3) {
+            left: 60%;
+            animation-delay: 4s;
+            animation-duration: 14s;
+            width: 70px;
+            height: 70px;
+        }
+        .background span:nth-child(4) {
+            left: 80%;
+            animation-delay: 6s;
+            animation-duration: 16s;
+            width: 80px;
+            height: 80px;
+        }
+        /* 省略重复样式... */
+
+        .login-container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 350px;
+            transform: translateY(50px);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .login-container h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .login-container form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .login-container .form-group {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .login-container label {
+            display: block;
+            margin-bottom: 5px;
+            text-align: left;
+            color: #666;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .login-container button:hover {
+            background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="background">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div class="login-container">
+        <h1>注册</h1>
+        {% if messages %}
+        <div style="color: red; font-size: 14px; margin-bottom: 10px;">
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_username">用户名</label>
+                <input type="text" name="username" id="id_username" required>
+            </div>
+            <div class="form-group">
+                <label for="id_email">邮箱</label>
+                <input type="email" name="email" id="id_email" required>
+            </div>
+            <div class="form-group">
+                <label for="id_password1">密码</label>
+                <input type="password" name="password1" id="id_password1" required>
+            </div>
+            <div class="form-group">
+                <label for="id_password2">确认密码</label>
+                <input type="password" name="password2" id="id_password2" required>
+            </div>
+            <button type="submit">注册</button>
+        </form>
+        <a href="{% url 'login' %}">已有账户？登录</a>
+    </div>
+</body>
+</html>

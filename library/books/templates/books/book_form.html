@@ -1,0 +1,52 @@
+{% extends 'books/base.html' %}
+
+{% block title %}
+    {% if book %}
+        编辑书籍
+    {% else %}
+        添加书籍
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3>
+        {% if book %}
+            编辑书籍
+        {% else %}
+            添加书籍
+        {% endif %}
+    </h3>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="title">标题：</label>
+            <input type="text" name="title" id="title" class="form-control" 
+                   value="{% if book %}{{ book.title }}{% endif %}" required>
+        </div>
+        <div class="form-group">
+            <label for="author">作者：</label>
+            <input type="text" name="author" id="author" class="form-control" 
+                   value="{% if book %}{{ book.author }}{% endif %}" required>
+        </div>
+        <div class="form-group">
+            <label for="published_date">出版日期：</label>
+            <input type="date" name="published_date" id="published_date" class="form-control" 
+                   value="{% if book %}{{ book.published_date|date:'Y-m-d' }}{% endif %}" required>
+        </div>
+        <div class="form-group">
+            <label for="isbn">ISBN：</label>
+            <input type="text" name="isbn" id="isbn" class="form-control" 
+                   value="{% if book %}{{ book.isbn }}{% endif %}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            {% if book %}
+                保存修改
+            {% else %}
+                保存
+            {% endif %}
+        </button>
+        <a href="{% url 'book_list' %}" class="btn btn-secondary">取消</a>
+    </form>
+</div>
+{% endblock %}

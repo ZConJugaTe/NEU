@@ -1,0 +1,91 @@
+{% extends 'books/base.html' %}
+
+{% block title %}用户请求{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 用户请求列表 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="card-title">用户请求</h3>
+        </div>
+        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+            <!-- 搜索表单 -->
+            <form method="get" class="mb-3">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>请求时间</th>
+                            <th>是否解决</th>
+                            <th>操作</th>
+                        </tr>
+                        <tr>
+                            <th>
+                                <input type="text" class="form-control form-control-sm" name="username" placeholder="按用户名搜索" value="{{ username_query }}">
+                            </th>
+                            <th>
+                                <input type="date" class="form-control form-control-sm" name="request_date" placeholder="按请求时间搜索" value="{{ request_date_query }}">
+                            </th>
+                            <th>
+                                <select class="form-control form-control-sm" name="is_resolved">
+                                    <option value="">所有状态</option>
+                                    <option value="True" {% if is_resolved_query == 'True' %}selected{% endif %}>已解决</option>
+                                    <option value="False" {% if is_resolved_query == 'False' %}selected{% endif %}>未解决</option>
+                                </select>
+                            </th>
+                            <th>
+                                <button type="submit" class="btn btn-sm btn-primary w-100">搜索</button>
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+            </form>
+
+            <!-- 表格内容 -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>请求时间</th>
+                            <th>是否解决</th>
+                            {% if request.user.is_staff %}
+                            <th>操作</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in requests %}
+                        <tr>
+                            <td>{{ request.username }}</td>
+                            <td>{{ request.request_date|date:"Y-m-d" }}</td>
+                            <td>
+                                {% if request.is_resolved %}
+                                    <span class="badge badge-success">已解决</span>
+                                {% else %}
+                                    <span class="badge badge-warning">未解决</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.is_staff %}
+                                    {% if not request.is_resolved %}
+                                        <a href="{% url 'resolve_password_request' request.id %}" class="btn btn-success btn-sm">标记为解决</a>
+                                    {% else %}
+                                        <span class="badge badge-info">已处理</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">没有符合条件的密码重置请求。</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>                    
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

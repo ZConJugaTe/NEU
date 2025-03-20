@@ -1,0 +1,17 @@
+{% extends 'books/base.html' %}
+
+{% block title %}批量导入书籍{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h3>批量导入书籍</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="csv_file">选择CSV文件</label>
+            <input type="file" name="csv_file" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-success">导入</button>
+    </form>
+</div>
+{% endblock %}
