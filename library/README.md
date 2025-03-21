@@ -1,4 +1,10 @@
-
+# 运行方法
+```bash
+conda create -n library python==3.10 -y
+conda activate library
+python manage.py
+```
+# 文件架构
 ```
 library
 ├─ books
